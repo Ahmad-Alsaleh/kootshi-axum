@@ -5,6 +5,7 @@ use axum::{
 use serde::Serialize;
 
 #[derive(Serialize, Clone, Copy, Debug)]
+#[serde(rename_all = "snake_case")]
 pub enum ServerError {
     WrongLoginCredentials,
 }

@@ -5,8 +5,8 @@ use serde_with::skip_serializing_none;
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
-#[derive(Serialize)]
 #[skip_serializing_none]
+#[derive(Serialize)]
 pub struct RequestLogInfo<'a> {
     pub request_id: Uuid,
     // pub user_id // TODO
@@ -21,6 +21,7 @@ pub struct RequestLogInfo<'a> {
 
 impl<'r> RequestLogInfo<'r> {
     pub fn new(
+        request_id: Uuid,
         uri: &'r Uri,
         method: &'r Method,
         status_code: StatusCode,
@@ -28,7 +29,7 @@ impl<'r> RequestLogInfo<'r> {
         client_error: Option<ClientError>,
     ) -> Self {
         Self {
-            request_id: Uuid::new_v4(),
+            request_id,
             timestamp: get_millis_since_epoch(),
             path: uri.path(),
             method: method.as_str(),

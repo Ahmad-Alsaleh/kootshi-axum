@@ -8,6 +8,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde_json::json;
+use uuid::Uuid;
 
 pub async fn map_response(method: Method, uri: Uri, response: Response) -> Response {
     let (server_error, client_error) = response
@@ -19,9 +20,12 @@ pub async fn map_response(method: Method, uri: Uri, response: Response) -> Respo
         })
         .unzip();
 
+    let request_id = Uuid::new_v4();
+
     let response = client_error
         .map(|client_error| {
             let body = json!({
+                "request_id": request_id,
                 "status": response.status().as_u16(),
                 "message": client_error,
             });
@@ -29,8 +33,14 @@ pub async fn map_response(method: Method, uri: Uri, response: Response) -> Respo
         })
         .unwrap_or(response);
 
-    let log_line =
-        RequestLogInfo::new(&uri, &method, response.status(), server_error, client_error);
+    let log_line = RequestLogInfo::new(
+        request_id,
+        &uri,
+        &method,
+        response.status(),
+        server_error,
+        client_error,
+    );
     println!("{}", json!(log_line));
 
     response
