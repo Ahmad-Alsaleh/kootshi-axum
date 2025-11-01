@@ -1,4 +1,4 @@
-use crate::{errors::ServerError, models::payloads::LoginPayload};
+use crate::{errors::ServerError, models::LoginPayload};
 use axum::{Json, Router, routing::post};
 
 pub fn get_router() -> Router {

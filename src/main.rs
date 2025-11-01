@@ -1,15 +1,6 @@
 use axum::{Router, middleware};
 use tokio::net::TcpListener;
 
-// TODO: temp, remove this
-#[derive(serde::Serialize, Clone)]
-struct MyUuid(String);
-impl MyUuid {
-    fn new_v4() -> Self {
-        Self(String::from("fake-uuid"))
-    }
-}
-
 mod errors;
 mod middlewares;
 mod models;
