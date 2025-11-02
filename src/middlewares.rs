@@ -3,27 +3,24 @@ use crate::{
     models::RequestLogInfo,
 };
 use axum::{
-    Json,
+    Extension, Json,
+    extract::Request,
     http::{Method, Uri},
     response::{IntoResponse, Response},
 };
 use serde_json::json;
 use uuid::Uuid;
 
-pub async fn generate_request_id(mut response: Response) -> Response {
+pub async fn generate_request_id(mut request: Request) -> Request {
     let request_id = Uuid::new_v4();
-    response.extensions_mut().insert(request_id);
-    response
+    request.extensions_mut().insert(request_id);
+    request
 }
 
-pub async fn map_response(response: Response) -> Response {
+pub async fn map_response(Extension(request_id): Extension<Uuid>, response: Response) -> Response {
     // change the response body if there is a server error
     if let Some(&server_error) = response.extensions().get::<ServerError>() {
         let client_error = ClientError::from(server_error);
-        let request_id = response
-            .extensions()
-            .get::<Uuid>()
-            .expect("request_id is inserted in a previous middleware");
         let body = json!({
             "request_id": request_id,
             "status": response.status().as_u16(),
@@ -40,12 +37,12 @@ pub async fn map_response(response: Response) -> Response {
     }
 }
 
-pub async fn log_response(method: Method, uri: Uri, response: Response) -> Response {
-    let request_id = *response
-        .extensions()
-        .get::<Uuid>()
-        .expect("request_id is inserted in a previous middleware");
-
+pub async fn log_response(
+    Extension(request_id): Extension<Uuid>,
+    method: Method,
+    uri: Uri,
+    response: Response,
+) -> Response {
     let server_error = response.extensions().get::<ServerError>().copied();
     let client_error = response.extensions().get::<ClientError>().copied();
 
