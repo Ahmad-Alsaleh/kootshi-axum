@@ -19,7 +19,7 @@ pub async fn generate_request_id(mut request: Request) -> Request {
 
 pub async fn map_response(Extension(request_id): Extension<Uuid>, response: Response) -> Response {
     // change the response body if there is a server error
-    if let Some(&server_error) = response.extensions().get::<ServerError>() {
+    if let Some(server_error) = response.extensions().get::<ServerError>() {
         let client_error = ClientError::from(server_error);
         let body = json!({
             "request_id": request_id,
@@ -43,7 +43,7 @@ pub async fn log_response(
     uri: Uri,
     response: Response,
 ) -> Response {
-    let server_error = response.extensions().get::<ServerError>().copied();
+    let server_error = response.extensions().get::<ServerError>();
     let client_error = response.extensions().get::<ClientError>().copied();
 
     let log_line = RequestLogInfo::new(

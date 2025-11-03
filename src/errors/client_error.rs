@@ -5,12 +5,14 @@ use serde::Serialize;
 #[serde(rename_all = "snake_case")]
 pub enum ClientError {
     InvalidUsernameOrPassword,
+    InvalidJwtToken,
 }
 
-impl From<ServerError> for ClientError {
-    fn from(server_error: ServerError) -> Self {
+impl From<&ServerError> for ClientError {
+    fn from(server_error: &ServerError) -> Self {
         match server_error {
             ServerError::WrongLoginCredentials => Self::InvalidUsernameOrPassword,
+            ServerError::JwtError(_) => Self::InvalidJwtToken,
         }
     }
 }

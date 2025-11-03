@@ -31,13 +31,14 @@ async fn login(
         &claims,
         &EncodingKey::from_secret(b"my-secret"), // TODO: use an env var
     )
-    .unwrap(); // TODO: remove unwrap and handle the error
+    .map_err(ServerError::JwtError)?;
+
     let cookie = Cookie::build(("token", token))
         .path("/")
         .http_only(true)
         .build();
     cookies.add(cookie);
 
-    // TODO: check, maybe there is a status code for login better than 200
+    // TODO: check, maybe there is a status code for login better than 200, maybe 202 (accepted)?
     Ok(Json("success"))
 }

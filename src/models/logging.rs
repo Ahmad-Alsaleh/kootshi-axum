@@ -15,7 +15,7 @@ pub struct RequestLogInfo<'r> {
     path: &'r str,
     method: &'r str,
     status_code: u16,
-    server_error: Option<ServerError>,
+    server_error: Option<&'r ServerError>,
     client_error: Option<ClientError>,
 }
 
@@ -25,7 +25,7 @@ impl<'r> RequestLogInfo<'r> {
         uri: &'r Uri,
         method: &'r Method,
         status_code: StatusCode,
-        server_error: Option<ServerError>,
+        server_error: Option<&'r ServerError>,
         client_error: Option<ClientError>,
     ) -> Self {
         Self {
