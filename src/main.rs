@@ -1,4 +1,9 @@
-use axum::{Router, middleware};
+use axum::{
+    Router,
+    http::{Method, StatusCode, Uri},
+    middleware,
+    response::IntoResponse,
+};
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 
@@ -25,4 +30,12 @@ fn get_app_router() -> Router {
         .layer(middleware::map_response(middlewares::log_response))
         .layer(middleware::map_request(middlewares::generate_request_id))
         .layer(CookieManagerLayer::new())
+        .fallback(fallback)
+}
+
+async fn fallback(method: Method, uri: Uri) -> impl IntoResponse {
+    (
+        StatusCode::NOT_FOUND,
+        format!("The specified endpoint `{method} {uri}` is not found."),
+    )
 }
