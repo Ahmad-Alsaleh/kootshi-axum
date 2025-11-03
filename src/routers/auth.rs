@@ -8,6 +8,7 @@ pub fn get_router() -> Router {
     Router::new().route("/login", post(login))
 }
 
+// TODO: should thie be moved to crate::models?
 #[derive(Serialize)]
 struct Claims {
     user_id: String,
@@ -42,3 +43,5 @@ async fn login(
     // TODO: check, maybe there is a status code for login better than 200, maybe 202 (accepted)?
     Ok(Json("success"))
 }
+
+// TODO: add a /signup endpoint

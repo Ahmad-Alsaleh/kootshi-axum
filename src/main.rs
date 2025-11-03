@@ -26,6 +26,7 @@ fn get_app_router() -> Router {
     Router::new()
         .merge(routers::basic::get_router())
         .nest("/auth", routers::auth::get_router())
+        .merge(routers::companies::get_router())
         .layer(middleware::map_response(middlewares::map_response))
         .layer(middleware::map_response(middlewares::log_response))
         .layer(middleware::map_request(middlewares::generate_request_id))
