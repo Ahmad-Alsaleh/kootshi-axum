@@ -7,13 +7,13 @@ use uuid::Uuid;
 
 #[skip_serializing_none]
 #[derive(Serialize)]
-pub struct RequestLogInfo<'a> {
+pub struct RequestLogInfo<'r> {
     pub request_id: Uuid,
     // pub user_id // TODO
     // TODO: find a better, idiomatic way to represent this
     timestamp: u128, // millis since epoch
-    path: &'a str,
-    method: &'a str,
+    path: &'r str,
+    method: &'r str,
     status_code: u16,
     server_error: Option<ServerError>,
     client_error: Option<ClientError>,
