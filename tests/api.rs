@@ -56,10 +56,13 @@ async fn login_success() {
     let status = response.status();
     let content_type = response.header("Content-Type").unwrap();
     let response_body = response.json_body().unwrap();
+    let set_cookie_header = response.header("set-cookie").unwrap();
 
     assert_eq!(status, StatusCode::OK);
     assert!(content_type.starts_with("application/json"));
     assert_eq!(response_body, json!("success"));
+    assert!(set_cookie_header.starts_with("token="));
+    assert!(client.cookie("token").is_some());
 }
 
 #[tokio::test]

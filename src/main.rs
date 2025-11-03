@@ -1,5 +1,6 @@
 use axum::{Router, middleware};
 use tokio::net::TcpListener;
+use tower_cookies::CookieManagerLayer;
 
 mod errors;
 mod middlewares;
@@ -23,4 +24,5 @@ fn get_app_router() -> Router {
         .layer(middleware::map_response(middlewares::map_response))
         .layer(middleware::map_response(middlewares::log_response))
         .layer(middleware::map_request(middlewares::generate_request_id))
+        .layer(CookieManagerLayer::new())
 }
