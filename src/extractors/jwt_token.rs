@@ -35,13 +35,15 @@ where
     type Rejection = ServerError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        // TODO: replace all unwraps
         let cookies = parts
             .extract::<Cookies>()
             .await
             .expect("`CookieManagerLayer` is enabled");
 
-        let cookie = cookies.get("token").unwrap(); // TODO: return a server error here like `ServerError::TokenNotFoundInCookies` which maps to `ClientError::Unauthorized` or `ClientError::LoginNeeded`
+        let Some(cookie) = cookies.get("token") else {
+            return Err(ServerError::JwtTokenNotFoundInCookies);
+        };
+
         let jwt_encoded_token = cookie.value();
 
         // TODO: use env var for secret, create a Config object

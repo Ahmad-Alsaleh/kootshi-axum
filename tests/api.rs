@@ -48,6 +48,9 @@ async fn fallback() {
 // TODO: test client cookies, etc.
 // TODO: test cookies if we login then make another api call
 
+// TODO: test if the user hits an auth-needed endpoint after the jwt token expires
+// ig an easy way to do this is to make exp configurable and have two configs, prod and dev
+
 #[tokio::test]
 async fn login_success() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
@@ -74,7 +77,8 @@ async fn companies() {
     client.do_post("/auth/login", login_body).await.unwrap();
 
     let response = client.do_get("/companies").await.unwrap();
-    // TODO: check response
+    response.print().await.unwrap();
+    // TODO: check response instead of printing it
 }
 
 #[tokio::test]

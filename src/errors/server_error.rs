@@ -11,12 +11,15 @@ use serde_with::{DisplayFromStr, serde_as};
 pub enum ServerError {
     WrongLoginCredentials,
     JwtError(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
+    JwtTokenNotFoundInCookies,
 }
 
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         let status_code = match self {
-            ServerError::WrongLoginCredentials | ServerError::JwtError(_) => StatusCode::FORBIDDEN,
+            Self::WrongLoginCredentials | Self::JwtError(_) | Self::JwtTokenNotFoundInCookies => {
+                StatusCode::FORBIDDEN
+            }
         };
         let mut response = status_code.into_response();
         response.extensions_mut().insert(self);
