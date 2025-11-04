@@ -8,6 +8,7 @@ use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 
 mod errors;
+mod extractors;
 mod middlewares;
 mod models;
 mod routers;

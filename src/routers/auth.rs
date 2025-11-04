@@ -1,7 +1,4 @@
-use crate::{
-    errors::ServerError,
-    models::{Context, LoginPayload},
-};
+use crate::{errors::ServerError, extractors::JwtToken, models::LoginPayload};
 use axum::{Json, Router, routing::post};
 use jsonwebtoken::{EncodingKey, Header};
 use tower_cookies::{Cookie, Cookies};
@@ -20,7 +17,7 @@ async fn login(
         return Err(ServerError::WrongLoginCredentials);
     }
 
-    let context = Context::new(Uuid::nil()); // TODO: use a real id (once porpoer auth logic is done)
+    let context = JwtToken::new(Uuid::nil()); // TODO: use a real id (once porpoer auth logic is done)
     let jwt_encoded_token = jsonwebtoken::encode(
         &Header::default(),
         &context,

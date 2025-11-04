@@ -9,36 +9,26 @@ use std::{
 use tower_cookies::Cookies;
 use uuid::Uuid;
 
-// TODO: put extractors file in src/extractors.rs not src/models/extractors.rs
-// then, renam Context to JwtToken
-
 #[derive(Serialize, Deserialize, Clone)]
-pub struct Context {
-    user_id: Uuid,
+pub struct JwtToken {
+    pub user_id: Uuid,
     exp: u64,
 }
 
-impl Context {
+impl JwtToken {
     pub fn new(user_id: Uuid) -> Self {
-        // SystemTime::now().duration_since(UNIX_EPOCH).unwrap().add(rhs)
         Self {
             user_id,
-            // FIXME: the below todo doesn't work
-            // TODO: set exp to 2 seconds and call /companies with and without a 2 seconds delay
             exp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("UNIX_EPOCH is in the past")
-                .add(Duration::from_secs(1)) // 15 minutes
+                .add(Duration::from_secs(60 * 15)) // 15 minutes // TODO: make this configurable
                 .as_secs(),
         }
     }
-
-    pub fn user_id(&self) -> Uuid {
-        self.user_id
-    }
 }
 
-impl<S> FromRequestParts<S> for Context
+impl<S> FromRequestParts<S> for JwtToken
 where
     S: Send + Sync,
 {
@@ -55,7 +45,7 @@ where
         let jwt_encoded_token = cookie.value();
 
         // TODO: use env var for secret, create a Config object
-        let token_data = jsonwebtoken::decode::<Context>(
+        let token_data = jsonwebtoken::decode::<JwtToken>(
             jwt_encoded_token.as_bytes(),
             &DecodingKey::from_secret(b"my-secret"),
             &Validation::default(),
