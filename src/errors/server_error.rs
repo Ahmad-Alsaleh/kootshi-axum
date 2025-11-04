@@ -18,7 +18,7 @@ impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         let status_code = match self {
             Self::WrongLoginCredentials | Self::JwtError(_) | Self::JwtTokenNotFoundInCookies => {
-                StatusCode::FORBIDDEN
+                StatusCode::UNAUTHORIZED
             }
         };
         let mut response = status_code.into_response();
