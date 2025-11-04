@@ -1,7 +1,9 @@
 use axum::http::StatusCode;
+use jsonwebtoken::get_current_timestamp;
 use serde_json::json;
 
-const DEV_BASE_URL: &str = "http://127.0.0.1:1936";
+// TODO: get the host address from env var with default of 127.0.0.1:1936
+const DEV_BASE_URL: &str = "http://127.0.0.1:1948";
 
 #[tokio::test]
 async fn index() {
@@ -63,6 +65,19 @@ async fn login_success() {
     assert_eq!(response_body, json!("success"));
     assert!(set_cookie_header.starts_with("token="));
     assert!(client.cookie("token").is_some());
+}
+
+#[tokio::test]
+async fn auth_token_is_available_after_login() {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    let login_body = json!({"username": "demo", "password": "password"});
+    client.do_post("/auth/login", login_body).await.unwrap();
+
+    // TODO: rename this funciton and make it call an endpoint that needs authentication
+    let response = client.do_get("/companies").await.unwrap();
+    response.print().await.unwrap();
+    dbg!(get_current_timestamp());
 }
 
 #[tokio::test]
