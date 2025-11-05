@@ -1,11 +1,13 @@
 use crate::{
     errors::{ClientError, ServerError},
+    extractors::JwtToken,
     models::RequestLogInfo,
 };
 use axum::{
     Extension, Json,
     extract::Request,
     http::{Method, Uri},
+    middleware::Next,
     response::{IntoResponse, Response},
 };
 use serde_json::json;
@@ -15,6 +17,17 @@ pub async fn generate_request_id(mut request: Request) -> Request {
     let request_id = Uuid::new_v4();
     request.extensions_mut().insert(request_id);
     request
+}
+
+pub async fn authenticate(
+    jwt_token: Result<JwtToken, ServerError>,
+    request: Request,
+    next: Next,
+) -> Result<Response, ServerError> {
+    match jwt_token {
+        Ok(_) => Ok(next.run(request).await),
+        Err(err) => Err(err),
+    }
 }
 
 pub async fn map_response(Extension(request_id): Extension<Uuid>, response: Response) -> Response {
