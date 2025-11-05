@@ -67,6 +67,7 @@ pub async fn log_response(
         server_error,
         client_error,
     );
+    // TODO: use proper logging
     println!("{}", json!(log_line));
 
     response

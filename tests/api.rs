@@ -1,5 +1,7 @@
 use axum::http::StatusCode;
 use serde_json::json;
+use std::str::FromStr;
+use uuid::Uuid;
 
 // TODO: get the host address from env var with default of 127.0.0.1:1936
 const DEV_BASE_URL: &str = "http://127.0.0.1:1948";
@@ -51,6 +53,9 @@ async fn fallback() {
 // TODO: test if the user hits an auth-needed endpoint after the jwt token expires
 // ig an easy way to do this is to make exp configurable and have two configs, prod and dev
 
+// TODO: test something like `curl localhost:1948/companies -H 'Cookie: token=<JWT_TOKEN>'`
+// where the jwt token can be obtained by hitting /login
+
 #[tokio::test]
 async fn login_success() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
@@ -64,7 +69,12 @@ async fn login_success() {
 
     assert_eq!(status, StatusCode::OK);
     assert!(content_type.starts_with("application/json"));
-    assert_eq!(response_body, json!("success"));
+    assert!(
+        response_body
+            .get("token")
+            .map(|token| Uuid::from_str(token.as_str().unwrap()))
+            .is_some()
+    );
     assert!(set_cookie_header.starts_with("token="));
     assert!(client.cookie("token").is_some());
 }
@@ -102,14 +112,14 @@ async fn login_wrong_credentials() {
     let content_type = response.header("Content-Type").unwrap();
     let response_body = response.json_body().unwrap();
 
-    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
     assert!(content_type.starts_with("application/json"));
     assert_eq!(
         response_body,
         json!({
-            "status": StatusCode::FORBIDDEN.as_u16(),
+            "status": StatusCode::UNAUTHORIZED.as_u16(),
             "message": "invalid_username_or_password",
-            "request_id": response_body.get("request_id"),
+            "request_id": response_body.get("request_id").unwrap(),
         })
     );
 }
