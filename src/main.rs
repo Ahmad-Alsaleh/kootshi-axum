@@ -17,7 +17,9 @@ mod routers;
 async fn main() {
     // TODO: get the host address from env var with default of 127.0.0.1:1936
     let app = get_app_router();
-    let listener = TcpListener::bind("127.0.0.1:1948").await.unwrap();
+    let listener = TcpListener::bind("127.0.0.1:1948")
+        .await
+        .expect("failed to bind TCP listener");
 
     println!("Litening at `{}`", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
