@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use serde_json::json;
-use std::str::FromStr;
+use std::{collections::HashSet, str::FromStr};
 use uuid::Uuid;
 
 // TODO: get the host address from env var with default of 127.0.0.1:1936
@@ -87,8 +87,17 @@ async fn companies() {
     client.do_post("/auth/login", login_body).await.unwrap();
 
     let response = client.do_get("/companies").await.unwrap();
-    response.print().await.unwrap();
-    // TODO: check response instead of printing it
+    let body = response.json_body().unwrap();
+    let companies = body.as_array().unwrap();
+
+    assert_eq!(companies.len(), 2);
+
+    let names = companies
+        .iter()
+        .map(|company| company["name"].as_str().unwrap())
+        .collect::<HashSet<_>>();
+
+    assert_eq!(names, HashSet::from(["Al Forsan", "Al Joker"]));
 }
 
 #[tokio::test]

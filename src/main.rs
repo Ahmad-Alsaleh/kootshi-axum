@@ -1,3 +1,4 @@
+use crate::models::ModelManager;
 use axum::{
     Router,
     http::{Method, StatusCode, Uri},
@@ -7,6 +8,7 @@ use axum::{
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 
+mod controllers;
 mod errors;
 mod extractors;
 mod middlewares;
@@ -15,8 +17,10 @@ mod routers;
 
 #[tokio::main]
 async fn main() {
+    let model_manager = ModelManager::new().await;
+
     // TODO: get the host address from env var with default of 127.0.0.1:1936
-    let app = get_app_router();
+    let app = get_app_router(model_manager);
     let listener = TcpListener::bind("127.0.0.1:1948")
         .await
         .expect("failed to bind TCP listener");
@@ -25,11 +29,12 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-fn get_app_router() -> Router {
+fn get_app_router(model_manager: ModelManager) -> Router {
     Router::new()
+        .merge(routers::companies::get_router())
+        .with_state(model_manager)
         .merge(routers::basic::get_router())
         .nest("/auth", routers::auth::get_router())
-        .merge(routers::companies::get_router())
         .layer(middleware::map_response(middlewares::map_response))
         .layer(middleware::map_response(middlewares::log_response))
         .layer(middleware::map_request(middlewares::generate_request_id))
