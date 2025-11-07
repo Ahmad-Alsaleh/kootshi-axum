@@ -1,4 +1,8 @@
-use crate::models::ModelManager;
+// TODOs:
+// 1. replace unwraps with proper error handeling
+// 2. seed the dev db
+
+use crate::{configs::config, models::ModelManager};
 use axum::{
     Router,
     http::{Method, StatusCode, Uri},
@@ -8,6 +12,7 @@ use axum::{
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 
+mod configs;
 mod controllers;
 mod errors;
 mod extractors;
@@ -15,13 +20,15 @@ mod middlewares;
 mod models;
 mod routers;
 
+// #[cfg(debug_assertions)]
+// mod dev_db;
+
 #[tokio::main]
 async fn main() {
     let model_manager = ModelManager::new().await;
 
-    // TODO: get the host address from env var with default of 127.0.0.1:1936
     let app = get_app_router(model_manager);
-    let listener = TcpListener::bind("127.0.0.1:1948")
+    let listener = TcpListener::bind(&config().server_address)
         .await
         .expect("failed to bind TCP listener");
 

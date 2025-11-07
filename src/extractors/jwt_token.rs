@@ -1,10 +1,10 @@
-use crate::errors::ServerError;
+use crate::{configs::config, errors::ServerError};
 use axum::{RequestPartsExt, extract::FromRequestParts, http::request::Parts};
 use jsonwebtoken::{DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::{
     ops::Add,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{SystemTime, UNIX_EPOCH},
 };
 use tower_cookies::Cookies;
 use uuid::Uuid;
@@ -22,7 +22,7 @@ impl JwtToken {
             exp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("UNIX_EPOCH is in the past")
-                .add(Duration::from_secs(60 * 15)) // 15 minutes // TODO: make this configurable
+                .add(config().jwt_exp_duration)
                 .as_secs(),
         }
     }
@@ -46,10 +46,9 @@ where
 
         let jwt_encoded_token = cookie.value();
 
-        // TODO: use env var for secret, create a Config object
         let token_data = jsonwebtoken::decode::<JwtToken>(
             jwt_encoded_token.as_bytes(),
-            &DecodingKey::from_secret(b"my-secret"),
+            &DecodingKey::from_secret(config().jwt_secret.as_bytes()),
             &Validation::default(),
         )
         .map_err(ServerError::JwtError)?;

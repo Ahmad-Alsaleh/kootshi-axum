@@ -1,4 +1,4 @@
-use crate::{errors::ServerError, extractors::JwtToken, models::LoginPayload};
+use crate::{configs::config, errors::ServerError, extractors::JwtToken, models::LoginPayload};
 use axum::{Json, Router, routing::post};
 use jsonwebtoken::{EncodingKey, Header};
 use serde_json::{Value, json};
@@ -22,7 +22,7 @@ async fn login(
     let jwt_encoded_token = jsonwebtoken::encode(
         &Header::default(),
         &context,
-        &EncodingKey::from_secret(b"my-secret"), // TODO: use an env var thro a Config object
+        &EncodingKey::from_secret(config().jwt_secret.as_bytes()),
     )
     .map_err(ServerError::JwtError)?;
 
