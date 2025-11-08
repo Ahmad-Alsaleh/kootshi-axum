@@ -9,7 +9,7 @@ use uuid::Uuid;
 #[derive(Serialize)]
 pub struct RequestLogInfo<'r> {
     request_id: Uuid,
-    // user_id: Option<Uuid>,
+    user_id: Option<Uuid>,
     timestamp: u128,
     path: &'r str,
     method: &'r str,
@@ -21,6 +21,7 @@ pub struct RequestLogInfo<'r> {
 impl<'r> RequestLogInfo<'r> {
     pub fn new(
         request_id: Uuid,
+        user_id: Option<Uuid>,
         uri: &'r Uri,
         method: &'r Method,
         status_code: StatusCode,
@@ -29,6 +30,7 @@ impl<'r> RequestLogInfo<'r> {
     ) -> Self {
         Self {
             request_id,
+            user_id,
             timestamp: get_millis_since_epoch(),
             path: uri.path(),
             method: method.as_str(),

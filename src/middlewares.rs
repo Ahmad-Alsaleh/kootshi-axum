@@ -52,22 +52,27 @@ pub async fn map_response(Extension(request_id): Extension<Uuid>, response: Resp
 
 pub async fn log_response(
     Extension(request_id): Extension<Uuid>,
-    // JwtToken { user_id, .. }: Option<JwtToken>,
+    // TODO: implement OptionalFromRequestParts for JwtToken so we can use Option<JwtToken> (right
+    // now we are doing nothing with the ServerError)
+    jwt_token: Result<JwtToken, ServerError>,
     method: Method,
     uri: Uri,
     response: Response,
 ) -> Response {
     let server_error = response.extensions().get::<ServerError>();
     let client_error = response.extensions().get::<ClientError>();
+    let user_id = jwt_token.ok().map(|token| token.user_id);
 
     let log_line = RequestLogInfo::new(
         request_id,
+        user_id,
         &uri,
         &method,
         response.status(),
         server_error,
         client_error,
     );
+
     // TODO: use proper logging
     println!("{}", json!(log_line));
 
