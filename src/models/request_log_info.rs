@@ -10,8 +10,7 @@ use uuid::Uuid;
 pub struct RequestLogInfo<'r> {
     request_id: Uuid,
     // user_id: Option<Uuid>,
-    // TODO: find a better, idiomatic way to represent this
-    timestamp: u128, // millis since epoch
+    timestamp: u128,
     path: &'r str,
     method: &'r str,
     status_code: u16,
