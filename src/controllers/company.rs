@@ -10,7 +10,7 @@ pub struct CompanyController;
 
 impl CompanyController {
     // TODO: use &str instead of String wherever possible
-    pub async fn create(model_manager: &ModelManager, name: String) -> Result<Uuid, sqlx::Error> {
+    pub async fn create(model_manager: &ModelManager, name: &str) -> Result<Uuid, sqlx::Error> {
         sqlx::query_scalar("INSERT INTO companies (name) VALUES ($1) RETURNING id")
             .bind(name)
             .fetch_one(model_manager.db())
@@ -46,7 +46,7 @@ impl CompanyController {
     pub async fn update_by_id(
         model_manager: &ModelManager,
         id: Uuid,
-        new_name: String,
+        new_name: &str,
     ) -> Result<Option<Company>, sqlx::Error> {
         sqlx::query_as("UPDATE companies SET name = $1 WHERE id = $2 RETURNING *")
             .bind(new_name)
@@ -70,7 +70,7 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let id = CompanyController::create(&model_manager, String::from("my-company"))
+        let id = CompanyController::create(&model_manager, "my-company")
             .await
             .context("failed while creating company")?;
 
@@ -212,10 +212,9 @@ mod tests {
             .context("failed while fetching the id and name of a previously inserted company")?;
 
         // exec
-        let company =
-            CompanyController::update_by_id(&model_manager, id, String::from("my new company"))
-                .await
-                .with_context(|| format!("failed while updating company with id: `{id}`"))?;
+        let company = CompanyController::update_by_id(&model_manager, id, "my new company")
+            .await
+            .with_context(|| format!("failed while updating company with id: `{id}`"))?;
 
         // check
         assert!(company.is_some());
@@ -239,7 +238,7 @@ mod tests {
 
         // exec
         let id = Uuid::new_v4();
-        let company = CompanyController::update_by_id(&model_manager, id, String::from("name"))
+        let company = CompanyController::update_by_id(&model_manager, id, "new name")
             .await
             .with_context(|| format!("failed while updating company with id: `{id}`"))?;
 
