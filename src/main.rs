@@ -1,6 +1,5 @@
 // TODOs:
 // 1. replace unwraps with proper error handeling
-// 2. seed the dev db
 
 use crate::{configs::config, models::ModelManager};
 use axum::{
@@ -20,12 +19,10 @@ mod middlewares;
 mod models;
 mod routers;
 
-// #[cfg(debug_assertions)]
-// mod dev_db;
-
 #[tokio::main]
 async fn main() {
     let model_manager = ModelManager::new().await;
+    model_manager.init().await;
 
     let app = get_app_router(model_manager);
     let listener = TcpListener::bind(&config().server_address)

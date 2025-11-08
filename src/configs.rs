@@ -14,7 +14,6 @@ pub struct Config {
 
 impl Config {
     fn load() -> Self {
-        println!("loaded!");
         Self {
             db_uri: std::env::var("DB_URI").unwrap(),
             server_address: std::env::var("SERVER_ADDRESS")
