@@ -9,16 +9,18 @@ pub fn get_router() -> Router {
     Router::new().route("/login", post(login))
 }
 
+// TODO: allow the client to optionally pass a login token instead of the username (?) and password.
+// TODO: read online what happens if someone steals the jwt auth-token and uses it to login on a different device.
 async fn login(
     cookies: Cookies,
     Json(body): Json<LoginPayload>,
 ) -> Result<Json<Value>, ServerError> {
-    // TODO: use proper auth logic
+    // TODO: (imp) use proper auth logic
     if body.username != "demo" || body.password != "password" {
         return Err(ServerError::WrongLoginCredentials);
     }
 
-    let context = JwtToken::new(Uuid::nil()); // TODO: use a real id (once porpoer auth logic is done)
+    let context = JwtToken::new(Uuid::nil()); // TODO: (imp) use a real id (once porpoer auth logic is done)
     let jwt_encoded_token = jsonwebtoken::encode(
         &Header::default(),
         &context,

@@ -48,15 +48,19 @@ async fn fallback() {
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
 
-// TODO: for the login endponit...
-// TODO: test client cookies, etc.
-// TODO: test cookies if we login then make another api call
+// TODO: for the login endponit, test client cookies, etc. test cookies if we login then make another api call
+// an easy and (imo) good way is to make a /protected-ping endpoint (follow restful naming conventions) for tests only that will return `pong!`
+
+// TODO: test calling a protected endpoint without auth
 
 // TODO: test if the user hits an auth-needed endpoint after the jwt token expires
 // ig an easy way to do this is to make exp configurable and have two configs, prod and dev
+// or to set the value of env var at run time. or, ig .cargo/config.toml allows u to set env for a specific profile (test in this case)
 
-// TODO: test something like `curl localhost:1948/companies -H 'Cookie: token=<JWT_TOKEN>'`
-// where the jwt token can be obtained by hitting /login
+// TODO: test something like `curl localhost:1948/companies -H 'Cookie: token=<JWT_TOKEN>'` (where the jwt token can be obtained by hitting /login)
+// i.e. pass the cookie manually, instead of using the client's cached cookies. one easy wat to do
+// this is to hit /login, save the cookie, create a new client, hit a /protected-ping and test if
+// it passes
 
 #[tokio::test]
 async fn login_success() {

@@ -33,7 +33,7 @@ impl ModelManager {
             .await
             .expect("failed to drop tables");
 
-        // TODO: replace plain passwords with hashed/salted passwords
+        // TODO: (imp) replace plain passwords with hashed/salted passwords
         sqlx::raw_sql(
             r#"
             CREATE TABLE IF NOT EXISTS companies (

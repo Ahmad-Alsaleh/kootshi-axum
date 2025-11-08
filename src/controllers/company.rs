@@ -9,7 +9,6 @@ pub struct CompanyController;
 // TODO: consider passing a DTO for create and update when the Company model becomes more complex
 
 impl CompanyController {
-    // TODO: use &str instead of String wherever possible
     pub async fn create(model_manager: &ModelManager, name: &str) -> Result<Uuid, sqlx::Error> {
         sqlx::query_scalar("INSERT INTO companies (name) VALUES ($1) RETURNING id")
             .bind(name)
