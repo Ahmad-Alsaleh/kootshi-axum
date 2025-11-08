@@ -12,6 +12,7 @@ pub fn get_router() -> Router<ModelManager> {
 }
 
 async fn get_all_companies(State(model_manager): State<ModelManager>) -> Json<Vec<Company>> {
-    let companies = CompanyController::get_all(&model_manager).await;
+    // // TODO: replace unwrap with .map_err(|err| ServerError::DataBase(err))
+    let companies = CompanyController::get_all(&model_manager).await.unwrap();
     Json(companies)
 }
