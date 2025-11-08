@@ -1,5 +1,9 @@
 use crate::{configs::config, errors::ServerError};
-use axum::{RequestPartsExt, extract::FromRequestParts, http::request::Parts};
+use axum::{
+    RequestPartsExt,
+    extract::{FromRequestParts, OptionalFromRequestParts},
+    http::request::Parts,
+};
 use jsonwebtoken::{DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -54,5 +58,20 @@ where
         .map_err(ServerError::JwtError)?;
 
         Ok(token_data.claims)
+    }
+}
+
+impl<S> OptionalFromRequestParts<S> for JwtToken
+where
+    S: Send + Sync,
+{
+    type Rejection = ();
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        let jwt_token = <Self as FromRequestParts<S>>::from_request_parts(parts, state).await;
+        Ok(jwt_token.ok())
     }
 }
