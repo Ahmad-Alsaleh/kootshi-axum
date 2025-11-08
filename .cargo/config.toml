@@ -1,0 +1,8 @@
+# NOTE: the following configs are for dev only, when the app is ran using cargo.
+# In prod, these configs should be managed by a container, e.g., Kubernetes (using ConfigMaps, or the like)
+[env]
+DB_URI="postgresql://postgres:dev_password@localhost:1934/postgres"
+SERVER_ADDRESS="localhost:1948"
+JWT_EXP_DURATION_SECONDS="900"
+JWT_SECRET="my-super-secure-jwt-secret"
+
