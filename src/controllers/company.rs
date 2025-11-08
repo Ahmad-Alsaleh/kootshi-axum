@@ -6,7 +6,10 @@ use uuid::Uuid;
 
 pub struct CompanyController;
 
+// TODO: consider passing a DTO for create and update when the Company model becomes more complex
+
 impl CompanyController {
+    // TODO: use &str instead of String wherever possible
     pub async fn create(model_manager: &ModelManager, name: String) -> Result<Uuid, sqlx::Error> {
         sqlx::query_scalar("INSERT INTO companies (name) VALUES ($1) RETURNING id")
             .bind(name)
@@ -40,7 +43,17 @@ impl CompanyController {
             .await
     }
 
-    // TODO: add delete and update methods (make sure to handel errors and edge cases)
+    pub async fn update_by_id(
+        model_manager: &ModelManager,
+        id: Uuid,
+        new_name: String,
+    ) -> Result<Option<Company>, sqlx::Error> {
+        sqlx::query_as("UPDATE companies SET name = $1 WHERE id = $2 RETURNING *")
+            .bind(new_name)
+            .bind(id)
+            .fetch_optional(model_manager.db())
+            .await
+    }
 }
 
 #[cfg(test)]
@@ -180,6 +193,55 @@ mod tests {
         let company = CompanyController::delete_by_id(&model_manager, id)
             .await
             .with_context(|| format!("failed while deleting company with id: `{id}`"))?;
+
+        // check
+        assert!(company.is_none());
+
+        Ok(())
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn test_update_by_id_id_found() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let (id, name): (Uuid, String) = sqlx::query_as("SELECT id, name FROM companies LIMIT 1")
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching the id and name of a previously inserted company")?;
+
+        // exec
+        let company =
+            CompanyController::update_by_id(&model_manager, id, String::from("my new company"))
+                .await
+                .with_context(|| format!("failed while updating company with id: `{id}`"))?;
+
+        // check
+        assert!(company.is_some());
+        assert_eq!(company.unwrap().name, "my new company");
+
+        // clean
+        sqlx::query("UPDATE companies SET name = $1 WHERE id = $2 RETURNING *")
+            .bind(name)
+            .bind(id)
+            .execute(model_manager.db())
+            .await
+            .context("failed while changing company name to original name")?;
+
+        Ok(())
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn test_update_by_id_id_not_found() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let id = Uuid::new_v4();
+        let company = CompanyController::update_by_id(&model_manager, id, String::from("name"))
+            .await
+            .with_context(|| format!("failed while updating company with id: `{id}`"))?;
 
         // check
         assert!(company.is_none());
