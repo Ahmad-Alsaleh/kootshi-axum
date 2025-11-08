@@ -1,6 +1,3 @@
-// TODOs:
-// 1. replace unwraps with proper error handeling
-
 use crate::{configs::config, models::ModelManager};
 use axum::{
     Router,

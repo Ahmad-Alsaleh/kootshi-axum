@@ -1,7 +1,7 @@
 use crate::errors::ServerError;
 use serde::Serialize;
 
-#[derive(Serialize, Debug, Copy, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum ClientError {
     InvalidUsernameOrPassword,

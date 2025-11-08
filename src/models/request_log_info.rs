@@ -8,15 +8,15 @@ use uuid::Uuid;
 #[skip_serializing_none]
 #[derive(Serialize)]
 pub struct RequestLogInfo<'r> {
-    pub request_id: Uuid,
-    // pub user_id // TODO
+    request_id: Uuid,
+    // user_id: Option<Uuid>,
     // TODO: find a better, idiomatic way to represent this
     timestamp: u128, // millis since epoch
     path: &'r str,
     method: &'r str,
     status_code: u16,
     server_error: Option<&'r ServerError>,
-    client_error: Option<ClientError>,
+    client_error: Option<&'r ClientError>,
 }
 
 impl<'r> RequestLogInfo<'r> {
@@ -26,7 +26,7 @@ impl<'r> RequestLogInfo<'r> {
         method: &'r Method,
         status_code: StatusCode,
         server_error: Option<&'r ServerError>,
-        client_error: Option<ClientError>,
+        client_error: Option<&'r ClientError>,
     ) -> Self {
         Self {
             request_id,

@@ -42,8 +42,8 @@ pub async fn map_response(Extension(request_id): Extension<Uuid>, response: Resp
 
         let (parts, _body) = response.into_parts();
         let mut response = (parts.status, Json(body)).into_response();
-        response.extensions_mut().insert(client_error);
         response.extensions_mut().extend(parts.extensions);
+        response.extensions_mut().insert(client_error);
         response
     } else {
         response
@@ -52,12 +52,13 @@ pub async fn map_response(Extension(request_id): Extension<Uuid>, response: Resp
 
 pub async fn log_response(
     Extension(request_id): Extension<Uuid>,
+    // JwtToken { user_id, .. }: Option<JwtToken>,
     method: Method,
     uri: Uri,
     response: Response,
 ) -> Response {
     let server_error = response.extensions().get::<ServerError>();
-    let client_error = response.extensions().get::<ClientError>().copied();
+    let client_error = response.extensions().get::<ClientError>();
 
     let log_line = RequestLogInfo::new(
         request_id,
