@@ -31,7 +31,7 @@ async fn login(
     });
 
     // TODO: set a max age and use refresh tokens
-    let cookie = Cookie::build(("token", jwt_encoded_token))
+    let cookie = Cookie::build(("auth-token", jwt_encoded_token))
         .path("/")
         .http_only(true)
         .build();

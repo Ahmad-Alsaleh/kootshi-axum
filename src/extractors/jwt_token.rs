@@ -40,7 +40,7 @@ where
             .await
             .expect("`CookieManagerLayer` is enabled");
 
-        let Some(cookie) = cookies.get("token") else {
+        let Some(cookie) = cookies.get("auth-token") else {
             return Err(ServerError::JwtTokenNotFoundInCookies);
         };
 

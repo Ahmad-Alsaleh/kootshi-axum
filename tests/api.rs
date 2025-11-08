@@ -75,8 +75,8 @@ async fn login_success() {
             .map(|token| Uuid::from_str(token.as_str().unwrap()))
             .is_some()
     );
-    assert!(set_cookie_header.starts_with("token="));
-    assert!(client.cookie("token").is_some());
+    assert!(set_cookie_header.starts_with("auth-token="));
+    assert!(client.cookie("auth-token").is_some());
 }
 
 #[tokio::test]
@@ -88,16 +88,17 @@ async fn companies() {
 
     let response = client.do_get("/companies").await.unwrap();
     let body = response.json_body().unwrap();
+    dbg!(&body);
     let companies = body.as_array().unwrap();
 
-    assert_eq!(companies.len(), 2);
+    assert_eq!(companies.len(), 3);
 
     let names = companies
         .iter()
         .map(|company| company["name"].as_str().unwrap())
         .collect::<HashSet<_>>();
 
-    assert_eq!(names, HashSet::from(["Al Forsan", "Al Joker"]));
+    assert_eq!(names, HashSet::from(["Al Forsan", "Al Joker", "Al Abtal"]));
 }
 
 #[tokio::test]
