@@ -6,6 +6,7 @@ use serde::Serialize;
 pub enum ClientError {
     InvalidUsernameOrPassword,
     LoginNeeded,
+    FailedToRetrieveData,
 }
 
 impl From<&ServerError> for ClientError {
@@ -13,6 +14,7 @@ impl From<&ServerError> for ClientError {
         match server_error {
             ServerError::WrongLoginCredentials => Self::InvalidUsernameOrPassword,
             ServerError::JwtError(_) | ServerError::JwtTokenNotFoundInCookies => Self::LoginNeeded,
+            ServerError::DataBase(_) => Self::FailedToRetrieveData,
         }
     }
 }

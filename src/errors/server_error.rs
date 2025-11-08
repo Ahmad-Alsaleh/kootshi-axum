@@ -12,6 +12,7 @@ pub enum ServerError {
     WrongLoginCredentials,
     JwtError(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
     JwtTokenNotFoundInCookies,
+    DataBase(String),
 }
 
 impl IntoResponse for ServerError {
@@ -20,6 +21,7 @@ impl IntoResponse for ServerError {
             Self::WrongLoginCredentials | Self::JwtError(_) | Self::JwtTokenNotFoundInCookies => {
                 StatusCode::UNAUTHORIZED
             }
+            Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
         };
         let mut response = status_code.into_response();
         response.extensions_mut().insert(self);

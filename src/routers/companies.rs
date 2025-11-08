@@ -1,5 +1,6 @@
 use crate::{
     controllers::CompanyController,
+    errors::ServerError,
     middlewares::authenticate,
     models::{Company, ModelManager},
 };
@@ -11,8 +12,11 @@ pub fn get_router() -> Router<ModelManager> {
         .route_layer(middleware::from_fn(authenticate))
 }
 
-async fn get_all_companies(State(model_manager): State<ModelManager>) -> Json<Vec<Company>> {
-    // // TODO: replace unwrap with .map_err(|err| ServerError::DataBase(err))
-    let companies = CompanyController::get_all(&model_manager).await.unwrap();
-    Json(companies)
+async fn get_all_companies(
+    State(model_manager): State<ModelManager>,
+) -> Result<Json<Vec<Company>>, ServerError> {
+    let companies = CompanyController::get_all(&model_manager)
+        .await
+        .map_err(|err| ServerError::DataBase(err.to_string()))?;
+    Ok(Json(companies))
 }
