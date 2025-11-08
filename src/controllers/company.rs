@@ -30,6 +30,16 @@ impl CompanyController {
             .await
     }
 
+    pub async fn delete_by_id(
+        model_manager: &ModelManager,
+        id: Uuid,
+    ) -> Result<Option<Company>, sqlx::Error> {
+        sqlx::query_as("DELETE FROM companies WHERE id = $1 RETURNING *")
+            .bind(id)
+            .fetch_optional(model_manager.db())
+            .await
+    }
+
     // TODO: add delete and update methods (make sure to handel errors and edge cases)
 }
 
@@ -64,22 +74,21 @@ mod tests {
             .bind(id)
             .execute(model_manager.db())
             .await
-            .context("failed while cleaning inserted company")?;
+            .context("failed while deleting inserted company")?;
 
         Ok(())
     }
 
     #[serial]
     #[tokio::test]
-    async fn test_get_by_id() -> anyhow::Result<()> {
+    async fn test_get_by_id_id_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // prepare
-        let (id, expected_name): (Uuid, String) =
-            sqlx::query_as("SELECT id, name FROM companies LIMIT 1")
-                .fetch_one(model_manager.db())
-                .await
-                .context("failed while fetching a the id and name of an inserted company")?;
+        let (id, name): (Uuid, String) = sqlx::query_as("SELECT id, name FROM companies LIMIT 1")
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching the id and name of a previously inserted company")?;
 
         // exec
         let company = CompanyController::get_by_id(&model_manager, id)
@@ -87,7 +96,8 @@ mod tests {
             .with_context(|| format!("failed while getting company with id: `{id}`"))?;
 
         // check
-        assert_eq!(company.map(|c| c.name), Some(expected_name));
+        assert!(company.is_some());
+        assert_eq!(company.unwrap().name, name);
 
         Ok(())
     }
@@ -111,7 +121,7 @@ mod tests {
 
     #[serial]
     #[tokio::test]
-    async fn test_get_all_ok() -> anyhow::Result<()> {
+    async fn test_get_all() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -125,6 +135,54 @@ mod tests {
             .map(|c| c.name.as_str())
             .collect::<HashSet<_>>();
         assert_eq!(names, HashSet::from(["Al Forsan", "Al Joker", "Al Abtal"]));
+
+        Ok(())
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn test_delete_by_id_id_found() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let (id, name): (Uuid, String) = sqlx::query_as("SELECT id, name FROM companies LIMIT 1")
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching the id and name of a previously inserted company")?;
+
+        // exec
+        let company = CompanyController::delete_by_id(&model_manager, id)
+            .await
+            .with_context(|| format!("failed while deleting company with id: `{id}`"))?;
+
+        // check
+        assert!(company.is_some());
+        assert_eq!(company.unwrap().name, name);
+
+        // clean
+        sqlx::query("INSERT INTO companies (id, name) VALUES ($1, $2)")
+            .bind(id)
+            .bind(name)
+            .execute(model_manager.db())
+            .await
+            .context("failed while inserting deleted company")?;
+
+        Ok(())
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn test_delete_by_id_id_not_found() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let id = Uuid::new_v4();
+        let company = CompanyController::delete_by_id(&model_manager, id)
+            .await
+            .with_context(|| format!("failed while deleting company with id: `{id}`"))?;
+
+        // check
+        assert!(company.is_none());
 
         Ok(())
     }
