@@ -37,20 +37,17 @@ impl CompanyController {
     // TODO: add delete and update methods (make sure to handel errors and edge cases)
 }
 
-// TODO: write test cases for CompanyController
-
-// TODO: replace all unwraps in tests with anyhow::Result
-
 #[cfg(test)]
 mod tests {
     use crate::{controllers::CompanyController, models::ModelManager};
+    use anyhow::Context;
     use serial_test::serial;
     use std::collections::HashSet;
     use uuid::Uuid;
 
     #[serial]
     #[tokio::test]
-    async fn test_create_ok() {
+    async fn test_create_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -61,7 +58,7 @@ mod tests {
             .bind(id)
             .fetch_one(model_manager.db())
             .await
-            .unwrap()
+            .context("failed while fetching the name of inserted company")?
             .0;
         assert_eq!(name, "my-company");
 
@@ -70,12 +67,14 @@ mod tests {
             .bind(id)
             .execute(model_manager.db())
             .await
-            .unwrap();
+            .context("failed while cleaning inserted company")?;
+
+        Ok(())
     }
 
     #[serial]
     #[tokio::test]
-    async fn test_get_by_id() {
+    async fn test_get_by_id() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // prepare
@@ -83,20 +82,22 @@ mod tests {
             sqlx::query_as::<_, (Uuid, String)>("SELECT id, name FROM companies LIMIT 1")
                 .fetch_one(model_manager.db())
                 .await
-                .unwrap();
+                .context("failed while fetching a the id and name of an inserted company")?;
 
         // exec
         let company = CompanyController::get_by_id(&model_manager, id)
             .await
-            .unwrap();
+            .with_context(|| format!("failed while getting company with id: `{id}`"))?;
 
         // check
         assert_eq!(company.name, name);
+
+        Ok(())
     }
 
     #[serial]
     #[tokio::test]
-    async fn test_get_by_id_id_not_found() {
+    async fn test_get_by_id_id_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -104,11 +105,13 @@ mod tests {
 
         // check
         assert!(company.is_none());
+
+        Ok(())
     }
 
     #[serial]
     #[tokio::test]
-    async fn test_get_all_ok() {
+    async fn test_get_all_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -120,5 +123,7 @@ mod tests {
             .map(|c| c.name.as_str())
             .collect::<HashSet<_>>();
         assert_eq!(names, HashSet::from(["Al Forsan", "Al Joker", "Al Abtal",]));
+
+        Ok(())
     }
 }
