@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 #[derive(Serialize, FromRow, Clone)]
 pub struct Company {
-    id: Uuid,
-    name: String,
+    pub id: Uuid,
+    pub name: String,
     // fields: Vec<Uuid>, // TODO: add this later
 }

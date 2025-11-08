@@ -55,11 +55,13 @@ impl ModelManager {
         #[cfg(debug_assertions)]
         sqlx::raw_sql(
             r#"
+            -- companies
             INSERT INTO companies (name) VALUES ('Al Forsan');
             INSERT INTO companies (name) VALUES ('Al Joker');
             INSERT INTO companies (name) VALUES ('Al Abtal');
 
-            INSERT INTO users (username, password, first_name, last_name) VALUES ('ahmad.asaleh', 'passme', 'Ahmad', 'Alsaleh');
+            -- users
+            INSERT INTO users (username, password, first_name, last_name) VALUES ('ahmad.alsaleh', 'passme', 'Ahmad', 'Alsaleh');
             "#,
         )
         .execute(self.db())

@@ -88,7 +88,6 @@ async fn companies() {
 
     let response = client.do_get("/companies").await.unwrap();
     let body = response.json_body().unwrap();
-    dbg!(&body);
     let companies = body.as_array().unwrap();
 
     assert_eq!(companies.len(), 3);
