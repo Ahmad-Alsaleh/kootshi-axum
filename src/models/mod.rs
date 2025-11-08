@@ -15,7 +15,9 @@ pub struct ModelManager(Arc<PgPool>);
 
 impl ModelManager {
     pub async fn new() -> Self {
-        let pool = PgPool::connect(&config().db_uri).await.unwrap();
+        let pool = PgPool::connect(&config().db_uri)
+            .await
+            .expect("failed to connect to DB");
         Self(Arc::new(pool))
     }
 
@@ -29,7 +31,7 @@ impl ModelManager {
         sqlx::query("DROP TABLE IF EXISTS companies, users;")
             .execute(self.db())
             .await
-            .unwrap();
+            .expect("failed to drop tables");
 
         // TODO: replace plain passwords with hashed/salted passwords
         sqlx::raw_sql(
@@ -50,7 +52,7 @@ impl ModelManager {
         )
         .execute(self.db())
         .await
-        .unwrap();
+        .expect("failed to create tables");
 
         #[cfg(debug_assertions)]
         sqlx::raw_sql(
@@ -66,7 +68,7 @@ impl ModelManager {
         )
         .execute(self.db())
         .await
-        .unwrap();
+        .expect("failed to seed tables");
     }
 
     pub fn db(&self) -> &PgPool {
