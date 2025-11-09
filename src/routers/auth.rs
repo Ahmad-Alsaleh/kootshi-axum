@@ -6,7 +6,7 @@ use crate::{
     models::{LoginPayload, ModelManager},
 };
 use axum::{Json, Router, extract::State, routing::post};
-use jsonwebtoken::{EncodingKey, Header};
+use jsonwebtoken::{Algorithm, EncodingKey, Header};
 use serde_json::{Value, json};
 use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 
@@ -32,7 +32,7 @@ async fn login(
 
     let jwt_token = JwtToken::new(user.id);
     let jwt_encoded_token = jsonwebtoken::encode(
-        &Header::default(),
+        &Header::new(Algorithm::HS256),
         &jwt_token,
         &EncodingKey::from_secret(&config().jwt_secret),
     )
@@ -43,6 +43,7 @@ async fn login(
     });
 
     // TODO: set a max age and use refresh tokens
+    // TODO: explicitly set all security-critical fields of the cookie
     let cookie = Cookie::build(("auth-token", jwt_encoded_token))
         .path("/")
         .http_only(true)

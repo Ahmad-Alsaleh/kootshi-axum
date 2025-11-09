@@ -4,7 +4,7 @@ use axum::{
     extract::{FromRequestParts, OptionalFromRequestParts},
     http::request::Parts,
 };
-use jsonwebtoken::{DecodingKey, Validation};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::{
     ops::Add,
@@ -53,7 +53,7 @@ where
         let token_data = jsonwebtoken::decode::<JwtToken>(
             jwt_encoded_token.as_bytes(),
             &DecodingKey::from_secret(&config().jwt_secret),
-            &Validation::default(),
+            &Validation::new(Algorithm::HS256),
         )
         .map_err(ServerError::JwtError)?;
 
