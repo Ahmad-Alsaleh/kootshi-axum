@@ -8,7 +8,7 @@ use crate::{
 use axum::{Json, Router, extract::State, routing::post};
 use jsonwebtoken::{EncodingKey, Header};
 use serde_json::{Value, json};
-use tower_cookies::{Cookie, Cookies};
+use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 
 pub fn get_router() -> Router<ModelManager> {
     Router::new().route("/login", post(login))
@@ -46,6 +46,7 @@ async fn login(
     let cookie = Cookie::build(("auth-token", jwt_encoded_token))
         .path("/")
         .http_only(true)
+        .same_site(SameSite::Lax) // TODO: should this be strict?
         .build();
     cookies.add(cookie);
 
