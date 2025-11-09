@@ -33,9 +33,9 @@ async fn main() {
 fn get_app_router(model_manager: ModelManager) -> Router {
     Router::new()
         .merge(routers::companies::get_router())
+        .nest("/auth", routers::auth::get_router())
         .with_state(model_manager)
         .merge(routers::basic::get_router())
-        .nest("/auth", routers::auth::get_router())
         .layer(middleware::map_response(middlewares::map_response))
         .layer(middleware::map_response(middlewares::log_response))
         .layer(middleware::map_request(middlewares::generate_request_id))

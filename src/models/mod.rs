@@ -1,5 +1,4 @@
 use sqlx::PgPool;
-use std::sync::Arc;
 
 mod company;
 mod request_log_info;
@@ -11,14 +10,14 @@ pub use request_log_info::RequestLogInfo;
 pub use request_payloads::LoginPayload;
 
 #[derive(Clone)]
-pub struct ModelManager(Arc<PgPool>);
+pub struct ModelManager(PgPool);
 
 impl ModelManager {
     pub async fn new() -> Self {
         let pool = PgPool::connect(&config().db_uri)
             .await
             .expect("failed to connect to DB");
-        Self(Arc::new(pool))
+        Self(pool)
     }
 
     /// Creates the tables in the DB. This function will also seed the tables with sample data if
@@ -64,6 +63,7 @@ impl ModelManager {
 
             -- users
             INSERT INTO users (username, password, first_name, last_name) VALUES ('ahmad.alsaleh', 'passme', 'Ahmad', 'Alsaleh');
+            INSERT INTO users (username, password, first_name, last_name) VALUES ('mohammed.hassan', 'my password', 'Mohammed', 'Hassan');
             "#,
         )
         .execute(self.db())
