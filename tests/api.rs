@@ -65,7 +65,7 @@ async fn fallback() {
 #[tokio::test]
 async fn login_success() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-    let request_body = json!({"username": "demo", "password": "password"});
+    let request_body = json!({"username": "ahmad.alsaleh", "password": "passme"});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
 
     let status = response.status();
@@ -89,7 +89,7 @@ async fn login_success() {
 async fn companies() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
-    let login_body = json!({"username": "demo", "password": "password"});
+    let login_body = json!({"username":"ahmad.alsaleh", "password": "passme"});
     client.do_post("/auth/login", login_body).await.unwrap();
 
     let response = client.do_get("/companies").await.unwrap();
@@ -120,7 +120,7 @@ async fn login_wrong_body() {
 #[tokio::test]
 async fn login_wrong_credentials() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-    let request_body = json!({"username": "demo", "password": "wrong-password"});
+    let request_body = json!({"username": "ahmad.alsaleh", "password": "wrong-password"});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
 
     let status = response.status();

@@ -1,29 +1,38 @@
-use crate::{configs::config, errors::ServerError, extractors::JwtToken, models::LoginPayload};
-use axum::{Json, Router, routing::post};
+use crate::{
+    configs::config,
+    controllers::UserController,
+    errors::ServerError,
+    extractors::JwtToken,
+    models::{LoginPayload, ModelManager},
+};
+use axum::{Json, Router, extract::State, routing::post};
 use jsonwebtoken::{EncodingKey, Header};
 use serde_json::{Value, json};
 use tower_cookies::{Cookie, Cookies};
-use uuid::Uuid;
 
-pub fn get_router() -> Router {
+pub fn get_router() -> Router<ModelManager> {
     Router::new().route("/login", post(login))
 }
 
 // TODO: allow the client to optionally pass a login token instead of the username (?) and password.
 // TODO: read online what happens if someone steals the jwt auth-token and uses it to login on a different device.
 async fn login(
+    State(model_manager): State<ModelManager>,
     cookies: Cookies,
-    Json(body): Json<LoginPayload>,
+    Json(login_payload): Json<LoginPayload>,
 ) -> Result<Json<Value>, ServerError> {
-    // TODO: (imp) use proper auth logic
-    if body.username != "demo" || body.password != "password" {
-        return Err(ServerError::WrongLoginCredentials);
-    }
+    let user = UserController::get(&model_manager, login_payload)
+        .await
+        .map_err(|err| ServerError::DataBase(err.to_string()))?;
 
-    let context = JwtToken::new(Uuid::nil()); // TODO: (imp) use a real id (once porpoer auth logic is done)
+    let Some(user) = user else {
+        return Err(ServerError::WrongLoginCredentials);
+    };
+
+    let jwt_token = JwtToken::new(user.id);
     let jwt_encoded_token = jsonwebtoken::encode(
         &Header::default(),
-        &context,
+        &jwt_token,
         &EncodingKey::from_secret(config().jwt_secret.as_bytes()),
     )
     .map_err(ServerError::JwtError)?;

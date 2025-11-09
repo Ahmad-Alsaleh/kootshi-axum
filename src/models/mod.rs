@@ -1,13 +1,15 @@
+use crate::configs::config;
 use sqlx::PgPool;
 
 mod company;
 mod request_log_info;
 mod request_payloads;
+mod user;
 
-use crate::configs::config;
 pub use company::Company;
 pub use request_log_info::RequestLogInfo;
 pub use request_payloads::LoginPayload;
+pub use user::User;
 
 #[derive(Clone)]
 pub struct ModelManager(PgPool);
@@ -74,4 +76,6 @@ impl ModelManager {
     pub fn db(&self) -> &PgPool {
         &self.0
     }
+
+    // TODO: consider implementing Deref, but first check where is .db() used
 }
