@@ -6,8 +6,6 @@ use uuid::Uuid;
 // TODO: get the host address from env var with default of 127.0.0.1:1936
 const DEV_BASE_URL: &str = "http://127.0.0.1:1948";
 
-// TODO: replace all unwraps with anyhow::Results
-
 #[tokio::test]
 async fn index() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
