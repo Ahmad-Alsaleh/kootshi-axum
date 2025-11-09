@@ -9,25 +9,24 @@ pub struct Config {
     pub db_uri: String,
     pub server_address: String,
     pub jwt_exp_duration: Duration,
-    pub jwt_secret: String,
+    pub jwt_secret: Vec<u8>,
 }
 
 impl Config {
     fn load() -> Self {
         Self {
-            db_uri: std::env::var("DB_URI").expect("failed to load DB_URI"),
-            server_address: std::env::var("SERVER_ADDRESS")
-                .unwrap_or_else(|_| String::from("127.0.0.1:1936")),
+            db_uri: read_env_var("DB_URI"),
+            server_address: read_env_var("SERVER_ADDRESS"),
             jwt_exp_duration: Duration::from_secs(
-                std::env::var("JWT_EXP_DURATION_SECONDS")
-                    .map(|value| {
-                        value
-                            .parse()
-                            .expect("failed to parse JWT_EXP_DURATION_SECONDS as an int")
-                    })
-                    .unwrap_or(60 * 15),
+                read_env_var("JWT_EXP_DURATION_SECONDS")
+                    .parse()
+                    .expect("failed to parse JWT_EXP_DURATION_SECONDS as an int"),
             ),
-            jwt_secret: std::env::var("JWT_SECRET").expect("failed to load JWT_SECRET"),
+            jwt_secret: read_env_var("JWT_SECRET").into_bytes(),
         }
     }
+}
+
+fn read_env_var(key: &str) -> String {
+    std::env::var(key).unwrap_or_else(|err| panic!("failed to read env var `{key}`: {err}"))
 }

@@ -34,7 +34,7 @@ async fn login(
     let jwt_encoded_token = jsonwebtoken::encode(
         &Header::default(),
         &jwt_token,
-        &EncodingKey::from_secret(config().jwt_secret.as_bytes()),
+        &EncodingKey::from_secret(&config().jwt_secret),
     )
     .map_err(ServerError::JwtError)?;
 
