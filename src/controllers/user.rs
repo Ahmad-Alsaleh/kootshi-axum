@@ -1,15 +1,19 @@
-use crate::models::{LoginPayload, ModelManager, User};
+use crate::models::{FromUser, ModelManager};
+use sqlx::{FromRow, postgres::PgRow};
 
 pub struct UserController;
 
 impl UserController {
-    pub async fn get_by_login_payload(
+    pub async fn get_by_username<U>(
         model_manager: &ModelManager,
-        login_payload: LoginPayload,
-    ) -> Result<Option<User>, sqlx::Error> {
-        sqlx::query_as("SELECT * FROM users WHERE username = $1 AND password = $2")
-            .bind(login_payload.username)
-            .bind(login_payload.password)
+        username: &str,
+    ) -> Result<Option<U>, sqlx::Error>
+    where
+        U: FromUser,
+        U: for<'r> FromRow<'r, PgRow> + Unpin + Send,
+    {
+        sqlx::query_as("SELECT * FROM users WHERE username = $1")
+            .bind(username)
             .fetch_optional(model_manager.db())
             .await
     }
@@ -19,48 +23,37 @@ impl UserController {
 mod tests {
     use crate::{
         controllers::UserController,
-        models::{LoginPayload, ModelManager},
+        models::{ModelManager, User},
     };
     use anyhow::Context;
     use serial_test::serial;
 
     #[serial]
     #[tokio::test]
-    async fn test_get_by_login_payload_user_found() -> anyhow::Result<()> {
+    async fn test_get_by_username_user_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let user = UserController::get_by_login_payload(
-            &model_manager,
-            LoginPayload {
-                username: String::from("ahmad.alsaleh"),
-                password: String::from("passme"),
-            },
-        )
-        .await
-        .context("failed while getting user")?;
+        let user = UserController::get_by_username::<User>(&model_manager, "mohammed.hassan")
+            .await
+            .context("failed while fetching user")?
+            .context("user was not found")?;
 
         // check
-        assert!(user.is_some());
+        assert_eq!(user.username, "mohammed.hassan");
 
         Ok(())
     }
 
     #[serial]
     #[tokio::test]
-    async fn test_get_by_login_payload_user_not_found() -> anyhow::Result<()> {
+    async fn test_get_by_username_user_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let user = UserController::get_by_login_payload(
-            &model_manager,
-            LoginPayload {
-                username: String::from("ahmad.alsaleh"),
-                password: String::from("wrong password"),
-            },
-        )
-        .await
-        .context("failed while getting user")?;
+        let user = UserController::get_by_username::<User>(&model_manager, "invalid username")
+            .await
+            .context("failed while fetching user")?;
 
         // check
         assert!(user.is_none());

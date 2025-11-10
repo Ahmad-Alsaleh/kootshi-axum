@@ -9,7 +9,7 @@ mod user;
 pub use company::Company;
 pub use request_log_info::RequestLogInfo;
 pub use request_payloads::LoginPayload;
-pub use user::User;
+pub use user::{FromUser, User, UserForLogin};
 
 #[derive(Clone)]
 pub struct ModelManager(PgPool);
@@ -34,7 +34,6 @@ impl ModelManager {
             .await
             .expect("failed to drop tables");
 
-        // TODO: (imp) replace plain passwords with hashed/salted passwords
         sqlx::raw_sql(
             r#"
             CREATE TABLE IF NOT EXISTS companies (
@@ -45,9 +44,10 @@ impl ModelManager {
             CREATE TABLE IF NOT EXISTS users (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 username VARCHAR(128) NOT NULL UNIQUE,
-                password VARCHAR(128) NOT NULL,
                 first_name VARCHAR(128),
-                last_name VARCHAR(128)
+                last_name VARCHAR(128),
+                password_hash VARCHAR(256) NOT NULL,
+                password_salt VARCHAR(64) NOT NULL
             );
             "#,
         )
@@ -64,13 +64,14 @@ impl ModelManager {
             INSERT INTO companies (name) VALUES ('Al Abtal');
 
             -- users
-            INSERT INTO users (username, password, first_name, last_name) VALUES ('ahmad.alsaleh', 'passme', 'Ahmad', 'Alsaleh');
-            INSERT INTO users (username, password, first_name, last_name) VALUES ('mohammed.hassan', 'my password', 'Mohammed', 'Hassan');
+            INSERT INTO users (username, first_name, last_name, password_hash, password_salt) VALUES ('ahmad.alsaleh', 'Ahmad', 'Alsaleh', 'temp', 'temp');
+            INSERT INTO users (username, first_name, last_name, password_hash, password_salt) VALUES ('mohammed.hassan', 'Mohammed', 'Hassan', 'temp', 'temp');
             "#,
         )
         .execute(self.db())
         .await
         .expect("failed to seed tables");
+        // TODO: insert passwords to the seeded users, once the salting logic or UserController::update_password is implemented
     }
 
     pub fn db(&self) -> &PgPool {

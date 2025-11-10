@@ -3,7 +3,8 @@ use crate::{
     controllers::UserController,
     errors::ServerError,
     extractors::JwtToken,
-    models::{LoginPayload, ModelManager},
+    models::{LoginPayload, ModelManager, UserForLogin},
+    secrets::SecretManager,
 };
 use axum::{Json, Router, extract::State, routing::post};
 use jsonwebtoken::{Algorithm, EncodingKey, Header};
@@ -22,19 +23,29 @@ async fn login(
     cookies: Cookies,
     Json(login_payload): Json<LoginPayload>,
 ) -> Result<Json<Value>, ServerError> {
-    let user = UserController::get_by_login_payload(&model_manager, login_payload)
-        .await
-        .map_err(|err| ServerError::DataBase(err.to_string()))?;
+    let user =
+        UserController::get_by_username::<UserForLogin>(&model_manager, &login_payload.username)
+            .await
+            .map_err(|err| ServerError::DataBase(err.to_string()))?;
 
     let Some(user) = user else {
-        return Err(ServerError::WrongLoginCredentials);
+        return Err(ServerError::UsernameNotFound);
     };
+
+    let password_hash = base64_url::decode(&user.password_hash).map_err(ServerError::Base64)?;
+    SecretManager::verify_secret(
+        login_payload.password,
+        user.password_salt,
+        &config().password_key,
+        &password_hash,
+    )
+    .map_err(|_| ServerError::WrongPassword)?;
 
     let jwt_token = JwtToken::new(user.id);
     let jwt_encoded_token = jsonwebtoken::encode(
         &Header::new(Algorithm::HS256),
         &jwt_token,
-        &EncodingKey::from_secret(&config().jwt_secret),
+        &EncodingKey::from_secret(&config().jwt_key),
     )
     .map_err(ServerError::JwtError)?;
 

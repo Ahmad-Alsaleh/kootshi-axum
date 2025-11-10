@@ -15,6 +15,7 @@ mod extractors;
 mod middlewares;
 mod models;
 mod routers;
+mod secrets;
 
 #[tokio::main]
 async fn main() {

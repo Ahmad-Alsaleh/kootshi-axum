@@ -1,6 +1,3 @@
-// TODO: remove me
-#![allow(unused)]
-
 use crate::models::{Company, ModelManager};
 use uuid::Uuid;
 

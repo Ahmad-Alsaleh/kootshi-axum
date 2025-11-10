@@ -52,7 +52,7 @@ where
 
         let token_data = jsonwebtoken::decode::<JwtToken>(
             jwt_encoded_token.as_bytes(),
-            &DecodingKey::from_secret(&config().jwt_secret),
+            &DecodingKey::from_secret(&config().jwt_key),
             &Validation::new(Algorithm::HS256),
         )
         .map_err(ServerError::JwtError)?;
