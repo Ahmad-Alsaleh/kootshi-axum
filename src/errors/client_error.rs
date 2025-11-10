@@ -1,4 +1,4 @@
-use crate::errors::ServerError;
+use crate::errors::{ServerError, error_impl};
 use serde::Serialize;
 
 #[derive(Serialize, Debug, Clone)]
@@ -9,6 +9,8 @@ pub enum ClientError {
     FailedToRetrieveData,
     UnknownError,
 }
+
+error_impl!(ClientError);
 
 impl From<&ServerError> for ClientError {
     fn from(server_error: &ServerError) -> Self {

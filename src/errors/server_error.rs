@@ -1,3 +1,4 @@
+use crate::errors::error_impl;
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -17,6 +18,8 @@ pub enum ServerError {
     DataBase(String),
     Base64(#[serde_as(as = "DisplayFromStr")] DecodeError),
 }
+
+error_impl!(ServerError);
 
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {

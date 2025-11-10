@@ -15,5 +15,4 @@ macro_rules! error_impl {
     };
 }
 
-error_impl!(ClientError);
-error_impl!(ServerError);
+pub(crate) use error_impl;
