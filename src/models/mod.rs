@@ -77,6 +77,4 @@ impl ModelManager {
     pub fn db(&self) -> &PgPool {
         &self.0
     }
-
-    // TODO: consider implementing Deref, but first check where is .db() used
 }

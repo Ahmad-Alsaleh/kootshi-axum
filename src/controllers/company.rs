@@ -44,6 +44,7 @@ impl CompanyController {
         id: Uuid,
         new_name: &str,
     ) -> Result<Option<Company>, sqlx::Error> {
+        // TODO: consider returning a UserNotFound error
         sqlx::query_as("UPDATE companies SET name = $1 WHERE id = $2 RETURNING *")
             .bind(new_name)
             .bind(id)
