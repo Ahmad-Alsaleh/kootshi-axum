@@ -22,15 +22,13 @@ impl UserController {
             .map_err(ControllerError::Sqlx)
     }
 
-    pub async fn update_password_by_username(
+    pub async fn update_password_hash_by_username(
         model_manager: &ModelManager,
         username: &str,
-        new_password: &str,
+        new_password_hash: &[u8],
     ) -> Result<(), ControllerError> {
-        // TODO: maybe (later) i want to handel user not found differently,
-        // using `enum Error {Sqlx(sqlx::Error), UserNotFound}`
         let rows_changed = sqlx::query("UPDATE users SET password_hash = $1 WHERE username = $2")
-            .bind(new_password)
+            .bind(new_password_hash)
             .bind(username)
             .execute(model_manager.db())
             .await
@@ -50,6 +48,7 @@ mod tests {
     use crate::{
         controllers::{ControllerError, UserController},
         models::{ModelManager, User},
+        secrets::SecretManager,
     };
     use anyhow::Context;
     use serial_test::serial;
@@ -101,10 +100,15 @@ mod tests {
                 .context("failed while fetching user")?;
 
         // exec
-        let random_value = Uuid::new_v4().to_string(); // any random value, uuid is suffecient
-        UserController::update_password_by_username(&model_manager, "ahmad.alsaleh", &random_value)
-            .await
-            .context("failed while updating password")?;
+        let salt = SecretManager::generate_salt();
+        let random_password = Uuid::new_v4().to_string(); // any random value, uuid is suffecient
+        UserController::update_password_hash_by_username(
+            &model_manager,
+            "ahmad.alsaleh",
+            &random_password,
+        )
+        .await
+        .context("failed while updating password")?;
 
         // check
         let new_password: String =
@@ -112,12 +116,16 @@ mod tests {
                 .fetch_one(model_manager.db())
                 .await
                 .context("failed while fetching user")?;
-        assert_eq!(new_password, random_value);
+        assert_eq!(new_password, random_password);
 
         // clean
-        UserController::update_password_by_username(&model_manager, "ahmad.alsaleh", &old_password)
-            .await
-            .context("failed while updating password")?;
+        UserController::update_password_hash_by_username(
+            &model_manager,
+            "ahmad.alsaleh",
+            &old_password,
+        )
+        .await
+        .context("failed while updating password")?;
 
         Ok(())
     }
@@ -128,7 +136,7 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let result = UserController::update_password_by_username(
+        let result = UserController::update_password_hash_by_username(
             &model_manager,
             "invalid username",
             "new password",

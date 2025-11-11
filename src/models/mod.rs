@@ -1,4 +1,4 @@
-use crate::configs::config;
+use crate::{configs::config, secrets::SecretManager};
 use sqlx::PgPool;
 
 mod company;
@@ -6,6 +6,8 @@ mod request_log_info;
 mod request_payloads;
 mod user;
 
+#[cfg(debug_assertions)]
+use crate::controllers::UserController;
 pub use company::Company;
 pub use request_log_info::RequestLogInfo;
 pub use request_payloads::LoginPayload;
@@ -46,8 +48,8 @@ impl ModelManager {
                 username VARCHAR(128) NOT NULL UNIQUE,
                 first_name VARCHAR(128),
                 last_name VARCHAR(128),
-                password_hash VARCHAR(256) NOT NULL,
-                password_salt VARCHAR(64) NOT NULL
+                password_hash BYTEA NOT NULL,
+                password_salt BYTEA NOT NULL
             );
             "#,
         )
@@ -56,22 +58,39 @@ impl ModelManager {
         .expect("failed to create tables");
 
         #[cfg(debug_assertions)]
-        sqlx::raw_sql(
-            r#"
-            -- companies
-            INSERT INTO companies (name) VALUES ('Al Forsan');
-            INSERT INTO companies (name) VALUES ('Al Joker');
-            INSERT INTO companies (name) VALUES ('Al Abtal');
+        {
+            sqlx::raw_sql(
+                r#"
+                -- companies
+                INSERT INTO companies (name) VALUES ('Al Forsan');
+                INSERT INTO companies (name) VALUES ('Al Joker');
+                INSERT INTO companies (name) VALUES ('Al Abtal');
 
-            -- users
-            INSERT INTO users (username, first_name, last_name, password_hash, password_salt) VALUES ('ahmad.alsaleh', 'Ahmad', 'Alsaleh', 'temp', 'temp');
-            INSERT INTO users (username, first_name, last_name, password_hash, password_salt) VALUES ('mohammed.hassan', 'Mohammed', 'Hassan', 'temp', 'temp');
-            "#,
-        )
-        .execute(self.db())
-        .await
-        .expect("failed to seed tables");
-        // TODO: insert passwords to the seeded users, once the salting logic or UserController::update_password is implemented
+                -- users (passwords hash and salt are temporary)
+                INSERT INTO users (username, first_name, last_name, password_hash, password_salt) VALUES ('ahmad.alsaleh', 'Ahmad', 'Alsaleh', '\x00', '\x00');
+                INSERT INTO users (username, first_name, last_name, password_hash, password_salt) VALUES ('mohammed.hassan', 'Mohammed', 'Hassan', '\x00', '\x00');
+                "#,
+            )
+            .execute(self.db())
+            .await
+            .expect("failed to seed tables");
+
+            // TODO: replace this once UserController::insert_user is implemented
+            for username in ["ahmad.alsaleh", "mohammed.hassan"] {
+                let mut password_salt = [0; 32];
+                SecretManager::generate_salt(&mut password_salt);
+
+                let password_hash =
+                    SecretManager::hash_secret("passme", &password_salt, &config().password_key);
+
+                sqlx::query("UPDATE users SET password_salt = $1, password_hash = $2 WHERE username = $3 RETURNING 1")
+                    .bind(password_salt)
+                    .bind(password_hash)
+                    .bind(username)
+                    .fetch_one(self.db())
+                    .await.expect("failed to update password hash and salt");
+            }
+        }
     }
 
     pub fn db(&self) -> &PgPool {
