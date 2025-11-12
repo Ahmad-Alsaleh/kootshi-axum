@@ -1,9 +1,13 @@
+use crate::errors::error_impl;
 use hmac::{Hmac, Mac};
 use rand::RngCore;
 use sha2::Sha256;
 
 pub struct SecretManager;
+
+#[derive(Debug)]
 pub struct SecretDoesNotMatchTarget;
+error_impl!(SecretDoesNotMatchTarget);
 
 // TODO: use argon2 instad of HMAC + SHA256
 
@@ -23,7 +27,7 @@ impl SecretManager {
     }
 
     pub fn verify_secret(
-        secret_to_verify: String,
+        secret_to_verify: &str,
         salt: &[u8],
         key: &[u8],
         target_hash: &[u8],

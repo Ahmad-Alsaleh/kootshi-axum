@@ -56,13 +56,13 @@ impl UserController {
 #[cfg(test)]
 mod tests {
     use crate::{
+        configs::config,
         controllers::{ControllerError, UserController},
-        models::ModelManager,
+        models::{ModelManager, User},
         secrets::SecretManager,
     };
     use anyhow::Context;
     use serial_test::serial;
-    use uuid::Uuid;
 
     #[serial]
     #[tokio::test]
@@ -72,8 +72,7 @@ mod tests {
         // exec
         let user = UserController::get_by_username::<User>(&model_manager, "mohammed.hassan")
             .await
-            .context("failed while fetching user")?
-            .context("user was not found")?;
+            .context("failed while fetching user")?;
 
         // check
         assert_eq!(user.username, "mohammed.hassan");
@@ -87,12 +86,11 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let user = UserController::get_by_username::<User>(&model_manager, "invalid username")
-            .await
-            .context("failed while fetching user")?;
+        let user =
+            UserController::get_by_username::<User>(&model_manager, "invalid username").await;
 
         // check
-        assert!(user.is_none());
+        assert!(matches!(user, Err(ControllerError::UserNotFound)));
 
         Ok(())
     }
@@ -103,39 +101,43 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // prepare
-        let old_password: String =
-            sqlx::query_scalar("SELECT password_hash FROM users WHERE username = 'ahmad.alsaleh'")
-                .fetch_one(model_manager.db())
-                .await
-                .context("failed while fetching user")?;
+        let (old_password_hash, password_salt): (Vec<u8>, Vec<u8>) = sqlx::query_as(
+            "SELECT password_hash, password_salt FROM users WHERE username = 'ahmad.alsaleh'",
+        )
+        .fetch_one(model_manager.db())
+        .await
+        .context("failed while fetching user")?;
 
         // exec
-        let salt = SecretManager::generate_salt();
-        let random_password = Uuid::new_v4().to_string(); // any random value, uuid is suffecient
         UserController::update_password_hash_by_username(
             &model_manager,
             "ahmad.alsaleh",
-            &random_password,
+            "new password",
         )
         .await
         .context("failed while updating password")?;
 
         // check
-        let new_password: String =
+        let new_password_hash: Vec<u8> =
             sqlx::query_scalar("SELECT password_hash FROM users WHERE username = 'ahmad.alsaleh'")
                 .fetch_one(model_manager.db())
                 .await
                 .context("failed while fetching user")?;
-        assert_eq!(new_password, random_password);
+
+        SecretManager::verify_secret(
+            "new password",
+            &password_salt,
+            &config().password_key,
+            &new_password_hash,
+        )
+        .context("password was not updated correctly")?;
 
         // clean
-        UserController::update_password_hash_by_username(
-            &model_manager,
-            "ahmad.alsaleh",
-            &old_password,
-        )
-        .await
-        .context("failed while updating password")?;
+        sqlx::query("UPDATE users SET password_hash = $1 WHERE username = 'ahmad.alsaleh'")
+            .bind(old_password_hash)
+            .execute(model_manager.db())
+            .await
+            .context("failed while updating password to original value")?;
 
         Ok(())
     }

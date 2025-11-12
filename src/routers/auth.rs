@@ -34,7 +34,7 @@ async fn login(
     };
 
     SecretManager::verify_secret(
-        login_payload.password,
+        &login_payload.password,
         &user.password_salt,
         &config().password_key,
         &user.password_hash,
