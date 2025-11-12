@@ -8,8 +8,8 @@ mod user;
 
 pub use company::Company;
 pub use request_log_info::RequestLogInfo;
-pub use request_payloads::{LoginPayload, SignupPayload};
-pub use user::{FromUser, User, UserForInsertUser, UserForLogin, UserForUpdatePassword};
+pub use request_payloads::{LoginPayload, SignupPayload, UpdatePasswordPayload};
+pub use user::{FromUser, UserForInsertUser, UserForLogin, UserForUpdatePassword};
 
 #[derive(Clone)]
 pub struct ModelManager(PgPool);

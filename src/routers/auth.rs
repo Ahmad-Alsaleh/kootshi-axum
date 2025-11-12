@@ -3,7 +3,10 @@ use crate::{
     controllers::{UserController, UserControllerError},
     errors::ServerError,
     extractors::JwtToken,
-    models::{LoginPayload, ModelManager, SignupPayload, UserForInsertUser, UserForLogin},
+    models::{
+        LoginPayload, ModelManager, SignupPayload, UpdatePasswordPayload, UserForInsertUser,
+        UserForLogin,
+    },
     secrets::SecretManager,
 };
 use axum::{Json, Router, extract::State, routing::post};
@@ -15,6 +18,8 @@ pub fn get_router() -> Router<ModelManager> {
     Router::new()
         .route("/login", post(login))
         .route("/signup", post(signup))
+        // TODO: check if using a hyphen is a good practice in RESTful APIs
+        .route("/update-password", post(update_password))
 }
 
 // TODO: allow the client to optionally pass a login token instead of the username (?) and password.
@@ -71,7 +76,7 @@ async fn login(
 async fn signup(
     State(model_manager): State<ModelManager>,
     Json(signup_payload): Json<SignupPayload>,
-) -> Result<Json<Value>, ServerError> {
+) -> Result<Json<&'static str>, ServerError> {
     if signup_payload.password != signup_payload.confirm_password {
         return Err(ServerError::PasswordAndConfirmPasswordAreDifferent);
     }
@@ -92,17 +97,39 @@ async fn signup(
 
     let result = UserController::insert_user(&model_manager, user).await;
 
-    let id = match result {
-        Ok(id) => id,
-        Err(UserControllerError::UsernameAlreadyExists) => {
-            return Err(ServerError::UsernameAlreadyExists);
-        }
-        Err(UserControllerError::Sqlx(err)) => return Err(ServerError::DataBase(err.to_string())),
+    match result {
+        Ok(_id) => Ok(Json("success")),
+        Err(UserControllerError::UsernameAlreadyExists) => Err(ServerError::UsernameAlreadyExists),
+        Err(UserControllerError::Sqlx(err)) => Err(ServerError::DataBase(err.to_string())),
         // TODO: consider having a different error for each controller function, and use From trait
         // to ease converting between errors (eg: update_password calls get_user, which will have
         // two error types)
         Err(UserControllerError::UserNotFound) => unreachable!(),
-    };
+    }
+}
 
-    Ok(Json(json!({"user_id": id})))
+async fn update_password(
+    State(model_manager): State<ModelManager>,
+    Json(update_password_payload): Json<UpdatePasswordPayload>,
+) -> Result<Json<&'static str>, ServerError> {
+    if update_password_payload.new_password != update_password_payload.confirm_new_password {
+        return Err(ServerError::PasswordAndConfirmPasswordAreDifferent);
+    }
+
+    // TODO: validate the password (length, at least one special char, at least one number, etc.)
+
+    let result = UserController::update_password_by_username(
+        &model_manager,
+        &update_password_payload.username,
+        &update_password_payload.new_password,
+    )
+    .await;
+
+    match result {
+        Ok(()) => Ok(Json("success")),
+        Err(UserControllerError::UserNotFound) => Err(ServerError::UsernameNotFound),
+        Err(UserControllerError::Sqlx(err)) => Err(ServerError::DataBase(err.to_string())),
+        // TODO: see todo in signup() to get rid of unreachable!()
+        Err(UserControllerError::UsernameAlreadyExists) => unreachable!(),
+    }
 }

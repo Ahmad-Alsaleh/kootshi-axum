@@ -15,3 +15,10 @@ pub struct SignupPayload {
     pub first_name: Option<String>,
     pub last_name: Option<String>,
 }
+
+#[derive(Deserialize)]
+pub struct UpdatePasswordPayload {
+    pub username: String,
+    pub new_password: String,
+    pub confirm_new_password: String,
+}

@@ -26,7 +26,7 @@ impl UserController {
             .ok_or(UserControllerError::UserNotFound)
     }
 
-    pub async fn update_password_hash_by_username(
+    pub async fn update_password_by_username(
         model_manager: &ModelManager,
         username: &str,
         new_password: &str,
@@ -38,15 +38,16 @@ impl UserController {
         let password_hash =
             SecretManager::hash_secret(new_password, &user.password_salt, &config().password_key);
 
-        let rows_affected = sqlx::query("UPDATE users SET password_hash = $1 WHERE username = $2")
-            .bind(password_hash)
-            .bind(username)
-            .execute(model_manager.db())
-            .await
-            .map_err(UserControllerError::Sqlx)?
-            .rows_affected();
+        let n_rows_affected =
+            sqlx::query("UPDATE users SET password_hash = $1 WHERE username = $2")
+                .bind(password_hash)
+                .bind(username)
+                .execute(model_manager.db())
+                .await
+                .map_err(UserControllerError::Sqlx)?
+                .rows_affected();
 
-        if rows_affected == 0 {
+        if n_rows_affected == 0 {
             return Err(UserControllerError::UserNotFound);
         }
 
@@ -143,7 +144,7 @@ mod tests {
         .context("failed while fetching user")?;
 
         // exec
-        UserController::update_password_hash_by_username(
+        UserController::update_password_by_username(
             &model_manager,
             "ahmad.alsaleh",
             "new password",
@@ -182,7 +183,7 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let result = UserController::update_password_hash_by_username(
+        let result = UserController::update_password_by_username(
             &model_manager,
             "invalid username",
             "new password",
