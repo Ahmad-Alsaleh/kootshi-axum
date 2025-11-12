@@ -3,7 +3,6 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use base64_url::base64::DecodeError;
 use serde::Serialize;
 use serde_with::{DisplayFromStr, serde_as};
 
@@ -18,7 +17,6 @@ pub enum ServerError {
     JwtError(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
     JwtTokenNotFoundInCookies,
     DataBase(String),
-    Base64(#[serde_as(as = "DisplayFromStr")] DecodeError),
 }
 
 error_impl!(ServerError);
@@ -30,7 +28,7 @@ impl IntoResponse for ServerError {
             | Self::WrongPassword
             | Self::JwtError(_)
             | Self::JwtTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
-            Self::DataBase(_) | ServerError::Base64(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::PasswordAndConfirmPasswordAreDifferent | Self::UsernameAlreadyExists => {
                 StatusCode::BAD_REQUEST
             }

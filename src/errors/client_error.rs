@@ -9,7 +9,6 @@ pub enum ClientError {
     FailedToRetrieveData,
     UsernameAlreadyExists,
     PasswordAndConfirmPasswordAreDifferent,
-    UnknownError,
 }
 
 error_impl!(ClientError);
@@ -22,7 +21,6 @@ impl From<&ServerError> for ClientError {
             }
             ServerError::JwtError(_) | ServerError::JwtTokenNotFoundInCookies => Self::LoginNeeded,
             ServerError::DataBase(_) => Self::FailedToRetrieveData,
-            ServerError::Base64(_) => Self::UnknownError,
             ServerError::PasswordAndConfirmPasswordAreDifferent => {
                 Self::PasswordAndConfirmPasswordAreDifferent
             }

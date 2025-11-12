@@ -23,9 +23,9 @@ impl Config {
                     .parse()
                     .expect("failed to parse JWT_EXP_DURATION_SECONDS as an int"),
             ),
-            // TODO: use base64_url::decode instead of into_bytes
+            // TODO: consider using base64_url::decode instead of into_bytes
             jwt_key: read_env_var("JWT_KEY").into_bytes(),
-            // TODO: use base64_url::decode instead of into_bytes
+            // TODO: consider using base64_url::decode instead of into_bytes
             password_key: read_env_var("PASSWORD_KEY").into_bytes(),
         }
     }
