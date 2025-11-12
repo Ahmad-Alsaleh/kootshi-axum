@@ -9,7 +9,7 @@ mod user;
 pub use company::Company;
 pub use request_log_info::RequestLogInfo;
 pub use request_payloads::LoginPayload;
-pub use user::{FromUser, UserForLogin, UserForUpdatePassword};
+pub use user::{FromUser, User, UserForLogin, UserForUpdatePassword};
 
 #[derive(Clone)]
 pub struct ModelManager(PgPool);
@@ -29,12 +29,12 @@ impl ModelManager {
         // create a method to seed the data in debug mode
 
         #[cfg(debug_assertions)]
-        sqlx::query(include_str!("../../sql/00-create-tables.sql"))
+        sqlx::query(include_str!("../../sql/00-drop-tables.sql"))
             .execute(self.db())
             .await
             .expect("failed to drop tables");
 
-        sqlx::raw_sql(include_str!("../../sql/01-drop-tables.sql"))
+        sqlx::raw_sql(include_str!("../../sql/01-create-tables.sql"))
             .execute(self.db())
             .await
             .expect("failed to create tables");
