@@ -1,12 +1,13 @@
 use sqlx::FromRow;
 use uuid::Uuid;
 
+#[cfg(test)]
 #[derive(FromRow)]
 pub struct User {
     pub id: Uuid,
     pub username: String,
-    pub first_name: String,
-    pub last_name: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
     // TODO: make sure this is not serialized,
     // maybe use a secret crate to wrap the password, or
     // add a serder attr to skip serializing this field
@@ -33,8 +34,11 @@ pub struct UserForInsertUser {
     pub last_name: Option<String>,
 }
 
-pub trait FromUser {}
-impl FromUser for User {}
-impl FromUser for UserForLogin {}
-impl FromUser for UserForUpdatePassword {}
-impl FromUser for UserForInsertUser {}
+pub trait UserFromRow {}
+
+#[cfg(test)]
+impl UserFromRow for User {}
+
+impl UserFromRow for UserForLogin {}
+impl UserFromRow for UserForUpdatePassword {}
+impl UserFromRow for UserForInsertUser {}

@@ -1,7 +1,7 @@
 use crate::{
     configs::config,
     controllers::UserControllerError,
-    models::{FromUser, ModelManager, UserForInsertUser, UserForUpdatePassword},
+    models::{ModelManager, UserForInsertUser, UserForUpdatePassword, UserFromRow},
     secrets::SecretManager,
 };
 use sqlx::{FromRow, postgres::PgRow};
@@ -15,7 +15,7 @@ impl UserController {
         username: &str,
     ) -> Result<U, UserControllerError>
     where
-        U: FromUser,
+        U: UserFromRow,
         U: for<'r> FromRow<'r, PgRow> + Unpin + Send,
     {
         sqlx::query_as("SELECT * FROM users WHERE username = $1")
@@ -221,8 +221,24 @@ mod tests {
             .await
             .context("failed while fetching user")?;
 
+        SecretManager::verify_secret(
+            "my_password",
+            &user.password_salt,
+            &config().password_key,
+            &user.password_hash,
+        )
+        .context("password is wrong")?;
+
+        assert_eq!(user.id, id);
         assert_eq!(user.username, "new.user");
-        // assert_eq!(user.first_name, None);
+        assert_eq!(user.first_name, None);
+        assert_eq!(user.last_name.as_deref(), Some("new user last name"));
+
+        // clean
+        sqlx::query("DELETE FROM users WHERE username = 'new.user'")
+            .execute(model_manager.db())
+            .await
+            .context("failed while deleting user")?;
 
         Ok(())
     }
@@ -230,6 +246,25 @@ mod tests {
     #[serial]
     #[tokio::test]
     async fn test_insert_user_username_already_exists() -> anyhow::Result<()> {
-        todo!()
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let user = UserForInsertUser {
+            username: String::from("ahmad.alsaleh"),
+            password: String::from("my_password"),
+            first_name: None,
+            last_name: None,
+        };
+
+        // exec
+        let result = UserController::insert_user(&model_manager, user).await;
+
+        // check
+        assert!(matches!(
+            result,
+            Err(UserControllerError::UsernameAlreadyExists)
+        ));
+
+        Ok(())
     }
 }
