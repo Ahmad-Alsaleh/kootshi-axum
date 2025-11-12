@@ -1,6 +1,8 @@
 use crate::{
+    configs::config,
     controllers::ControllerError,
-    models::{FromUser, ModelManager},
+    models::{FromUser, ModelManager, UserForUpdatePassword},
+    secrets::SecretManager,
 };
 use sqlx::{FromRow, postgres::PgRow};
 
@@ -10,7 +12,7 @@ impl UserController {
     pub async fn get_by_username<U>(
         model_manager: &ModelManager,
         username: &str,
-    ) -> Result<Option<U>, ControllerError>
+    ) -> Result<U, ControllerError>
     where
         U: FromUser,
         U: for<'r> FromRow<'r, PgRow> + Unpin + Send,
@@ -19,23 +21,31 @@ impl UserController {
             .bind(username)
             .fetch_optional(model_manager.db())
             .await
-            .map_err(ControllerError::Sqlx)
+            .map_err(ControllerError::Sqlx)?
+            .ok_or(ControllerError::UserNotFound)
     }
 
     pub async fn update_password_hash_by_username(
         model_manager: &ModelManager,
         username: &str,
-        new_password_hash: &[u8],
+        new_password: &str,
     ) -> Result<(), ControllerError> {
-        let rows_changed = sqlx::query("UPDATE users SET password_hash = $1 WHERE username = $2")
-            .bind(new_password_hash)
+        let user =
+            UserController::get_by_username::<UserForUpdatePassword>(model_manager, username)
+                .await?;
+
+        let password_hash =
+            SecretManager::hash_secret(new_password, &user.password_salt, &config().password_key);
+
+        let rows_affected = sqlx::query("UPDATE users SET password_hash = $1 WHERE username = $2")
+            .bind(password_hash)
             .bind(username)
             .execute(model_manager.db())
             .await
             .map_err(ControllerError::Sqlx)?
             .rows_affected();
 
-        if rows_changed == 0 {
+        if rows_affected == 0 {
             return Err(ControllerError::UserNotFound);
         }
 
@@ -47,7 +57,7 @@ impl UserController {
 mod tests {
     use crate::{
         controllers::{ControllerError, UserController},
-        models::{ModelManager, User},
+        models::ModelManager,
         secrets::SecretManager,
     };
     use anyhow::Context;

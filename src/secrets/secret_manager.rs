@@ -23,16 +23,16 @@ impl SecretManager {
     }
 
     pub fn verify_secret(
-        plain_secret: String,
-        salt: String,
+        secret_to_verify: String,
+        salt: &[u8],
         key: &[u8],
-        hashed_target: &[u8],
+        target_hash: &[u8],
     ) -> Result<(), SecretDoesNotMatchTarget> {
         Hmac::<Sha256>::new_from_slice(key)
             .expect("HMAC can take a key of any size")
             .chain_update(salt)
-            .chain_update(plain_secret)
-            .verify_slice(hashed_target)
+            .chain_update(secret_to_verify)
+            .verify_slice(target_hash)
             .map_err(|_| SecretDoesNotMatchTarget)
     }
 }

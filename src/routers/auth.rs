@@ -1,6 +1,6 @@
 use crate::{
     configs::config,
-    controllers::UserController,
+    controllers::{ControllerError, UserController},
     errors::ServerError,
     extractors::JwtToken,
     models::{LoginPayload, ModelManager, UserForLogin},
@@ -25,19 +25,19 @@ async fn login(
 ) -> Result<Json<Value>, ServerError> {
     let user =
         UserController::get_by_username::<UserForLogin>(&model_manager, &login_payload.username)
-            .await
-            .map_err(|err| ServerError::DataBase(err.to_string()))?;
+            .await;
 
-    let Some(user) = user else {
-        return Err(ServerError::UsernameNotFound);
+    let user = match user {
+        Ok(user) => user,
+        Err(ControllerError::UserNotFound) => return Err(ServerError::UsernameNotFound),
+        Err(ControllerError::Sqlx(err)) => return Err(ServerError::DataBase(err.to_string())),
     };
 
-    let password_hash = base64_url::decode(&user.password_hash).map_err(ServerError::Base64)?;
     SecretManager::verify_secret(
         login_payload.password,
-        user.password_salt,
+        &user.password_salt,
         &config().password_key,
-        &password_hash,
+        &user.password_hash,
     )
     .map_err(|_| ServerError::WrongPassword)?;
 
