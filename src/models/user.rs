@@ -26,7 +26,15 @@ pub struct UserForUpdatePassword {
     pub password_salt: Vec<u8>,
 }
 
+pub struct UserForInsertUser {
+    pub username: String,
+    pub password: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+}
+
 pub trait FromUser {}
 impl FromUser for User {}
 impl FromUser for UserForLogin {}
 impl FromUser for UserForUpdatePassword {}
+impl FromUser for UserForInsertUser {}

@@ -1,9 +1,9 @@
 use crate::{
     configs::config,
-    controllers::{ControllerError, UserController},
+    controllers::{UserController, UserControllerError},
     errors::ServerError,
     extractors::JwtToken,
-    models::{LoginPayload, ModelManager, UserForLogin},
+    models::{LoginPayload, ModelManager, SignupPayload, UserForInsertUser, UserForLogin},
     secrets::SecretManager,
 };
 use axum::{Json, Router, extract::State, routing::post};
@@ -12,7 +12,9 @@ use serde_json::{Value, json};
 use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 
 pub fn get_router() -> Router<ModelManager> {
-    Router::new().route("/login", post(login))
+    Router::new()
+        .route("/login", post(login))
+        .route("/signup", post(signup))
 }
 
 // TODO: allow the client to optionally pass a login token instead of the username (?) and password.
@@ -29,8 +31,9 @@ async fn login(
 
     let user = match user {
         Ok(user) => user,
-        Err(ControllerError::UserNotFound) => return Err(ServerError::UsernameNotFound),
-        Err(ControllerError::Sqlx(err)) => return Err(ServerError::DataBase(err.to_string())),
+        Err(UserControllerError::UserNotFound) => return Err(ServerError::UsernameNotFound),
+        Err(UserControllerError::Sqlx(err)) => return Err(ServerError::DataBase(err.to_string())),
+        Err(UserControllerError::UsernameAlreadyExists) => unreachable!(),
     };
 
     SecretManager::verify_secret(
@@ -65,4 +68,41 @@ async fn login(
     Ok(Json(response))
 }
 
-// TODO: add a /signup endpoint
+async fn signup(
+    State(model_manager): State<ModelManager>,
+    Json(signup_payload): Json<SignupPayload>,
+) -> Result<Json<Value>, ServerError> {
+    if signup_payload.password != signup_payload.confirm_password {
+        return Err(ServerError::PasswordAndConfirmPasswordAreDifferent);
+    }
+
+    // TODO: validate the password (length, at least one special char, at least one number, etc.)
+    // TODO: validate the username (only letters, numbers, . and _)
+
+    // TODO: use the validation crate, remove ServerError::PasswordAndConfirmPasswordAreDifferent,
+    // etc. and use a ServerError::ValidationError(message) which maps to StatusCode::BAD_REQUEST and
+    // ClientError::InvalidInput(message)
+
+    let user = UserForInsertUser {
+        username: signup_payload.username,
+        password: signup_payload.password,
+        first_name: signup_payload.first_name,
+        last_name: signup_payload.last_name,
+    };
+
+    let result = UserController::insert_user(&model_manager, user).await;
+
+    let id = match result {
+        Ok(id) => id,
+        Err(UserControllerError::UsernameAlreadyExists) => {
+            return Err(ServerError::UsernameAlreadyExists);
+        }
+        Err(UserControllerError::Sqlx(err)) => return Err(ServerError::DataBase(err.to_string())),
+        // TODO: consider having a different error for each controller function, and use From trait
+        // to ease converting between errors (eg: update_password calls get_user, which will have
+        // two error types)
+        Err(UserControllerError::UserNotFound) => unreachable!(),
+    };
+
+    Ok(Json(json!({"user_id": id})))
+}

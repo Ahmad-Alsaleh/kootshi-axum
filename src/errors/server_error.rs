@@ -13,6 +13,8 @@ use serde_with::{DisplayFromStr, serde_as};
 pub enum ServerError {
     UsernameNotFound,
     WrongPassword,
+    PasswordAndConfirmPasswordAreDifferent,
+    UsernameAlreadyExists,
     JwtError(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
     JwtTokenNotFoundInCookies,
     DataBase(String),
@@ -29,6 +31,9 @@ impl IntoResponse for ServerError {
             | Self::JwtError(_)
             | Self::JwtTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
             Self::DataBase(_) | ServerError::Base64(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::PasswordAndConfirmPasswordAreDifferent | Self::UsernameAlreadyExists => {
+                StatusCode::BAD_REQUEST
+            }
         };
         let mut response = status_code.into_response();
         response.extensions_mut().insert(self);

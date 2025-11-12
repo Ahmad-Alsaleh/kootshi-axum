@@ -1,3 +1,6 @@
+// TODO: remove me
+// #![allow(unused)]
+
 use crate::{configs::config, models::ModelManager};
 use axum::{
     Router,

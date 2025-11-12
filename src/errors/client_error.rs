@@ -7,6 +7,8 @@ pub enum ClientError {
     InvalidUsernameOrPassword,
     LoginNeeded,
     FailedToRetrieveData,
+    UsernameAlreadyExists,
+    PasswordAndConfirmPasswordAreDifferent,
     UnknownError,
 }
 
@@ -21,6 +23,10 @@ impl From<&ServerError> for ClientError {
             ServerError::JwtError(_) | ServerError::JwtTokenNotFoundInCookies => Self::LoginNeeded,
             ServerError::DataBase(_) => Self::FailedToRetrieveData,
             ServerError::Base64(_) => Self::UnknownError,
+            ServerError::PasswordAndConfirmPasswordAreDifferent => {
+                Self::PasswordAndConfirmPasswordAreDifferent
+            }
+            ServerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
         }
     }
 }

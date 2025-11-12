@@ -1,9 +1,10 @@
 use crate::errors::error_impl;
 
 #[derive(Debug)]
-pub enum ControllerError {
+pub enum UserControllerError {
     UserNotFound,
+    UsernameAlreadyExists,
     Sqlx(sqlx::Error),
 }
 
-error_impl!(ControllerError);
+error_impl!(UserControllerError);
