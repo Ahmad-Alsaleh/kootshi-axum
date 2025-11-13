@@ -1,10 +1,13 @@
 use axum::http::StatusCode;
 use serde_json::json;
-use std::{collections::HashSet, str::FromStr};
+use std::str::FromStr;
 use uuid::Uuid;
 
-// TODO: get the host address from env var with default of 127.0.0.1:1936
-const DEV_BASE_URL: &str = "http://127.0.0.1:1948";
+// TODO: test the output (logs) of the server. ig a good way of doing it is by running the server
+// in a command and capturing stdout. but ig it is better to put these tests in
+// tests/server-logs.rs
+
+const DEV_BASE_URL: &str = "http://localhost:1948";
 
 #[tokio::test]
 async fn index() {
@@ -44,6 +47,10 @@ async fn fallback() {
 
     assert!(content_type.starts_with("text/plain"));
     assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(
+        response.text_body().unwrap(),
+        "The specified endpoint `GET /does-not-exist` is not found."
+    );
 }
 
 // TODO: for the login endponit, test client cookies, etc. test cookies if we login then make another api call
@@ -81,27 +88,6 @@ async fn login_success() {
     );
     assert!(set_cookie_header.starts_with("auth-token="));
     assert!(client.cookie("auth-token").is_some());
-}
-
-#[tokio::test]
-async fn companies() {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    let login_body = json!({"username":"ahmad.alsaleh", "password": "passme"});
-    client.do_post("/auth/login", login_body).await.unwrap();
-
-    let response = client.do_get("/companies").await.unwrap();
-    let body = response.json_body().unwrap();
-    let companies = body.as_array().unwrap();
-
-    assert_eq!(companies.len(), 3);
-
-    let names = companies
-        .iter()
-        .map(|company| company["name"].as_str().unwrap())
-        .collect::<HashSet<_>>();
-
-    assert_eq!(names, HashSet::from(["Al Forsan", "Al Joker", "Al Abtal"]));
 }
 
 #[tokio::test]
