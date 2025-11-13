@@ -8,14 +8,14 @@ INSERT INTO users (username, first_name, last_name, password_hash, password_salt
   'ahmad.alsaleh',
   'Ahmad',
   'Alsaleh',
-  '\x055d9a5d9d14c67281cc23a76752bf116980e111c81e140142a8a8d24e4d4592',
-  '\xfd3feba17baebb786e3c1838261aec99160413b30425119dd81484e135b4d5e2'
+  '\x30b6d7def1889b5cdd37e3572195b5e33698fdaa62f5a1b0af21022d1f368c3f', -- the password is: passme
+  '\x6c73ad746c650ed4c9613a36809725058dfe02069989d66795903e679ca3a104'
 );
 INSERT INTO users (username, first_name, last_name, password_hash, password_salt) VALUES (
   'mohammed.hassan',
   'Mohammed',
   'Hassan',
-  '\xb7e9a65e6b64596dfc5a74e9b443e15311fedd2c2f7d8217b6a6de0bc4e6105c',
-  '\x733b950cc47f5123e80fac981e79d7ef55bec2cb24d643cdd84260d68d17bc95'
+  '\x62131cd7df415ac6d4adb877a2965b4a11f6fb53bc9762eee1c3b97cc0118ce0', -- the password is: passme
+  '\xa2f4c2fcc2857723cf9f0d7b3c2765ada7bee3378b9fbedbfc3e6aac995faa51'
 );
 
