@@ -83,8 +83,8 @@ mod tests {
     use std::collections::HashSet;
     use uuid::Uuid;
 
-    #[serial]
     #[tokio::test]
+    #[serial]
     async fn test_create_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -111,8 +111,8 @@ mod tests {
         Ok(())
     }
 
-    #[serial]
     #[tokio::test]
+    #[serial]
     async fn test_get_by_id_id_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -134,8 +134,8 @@ mod tests {
         Ok(())
     }
 
-    #[serial]
     #[tokio::test]
+    #[serial]
     async fn test_get_by_id_id_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -151,8 +151,8 @@ mod tests {
         Ok(())
     }
 
-    #[serial]
     #[tokio::test]
+    #[serial]
     async fn test_get_all() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -171,8 +171,8 @@ mod tests {
         Ok(())
     }
 
-    #[serial]
     #[tokio::test]
+    #[serial]
     async fn test_delete_by_id_id_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -202,8 +202,8 @@ mod tests {
         Ok(())
     }
 
-    #[serial]
     #[tokio::test]
+    #[serial]
     async fn test_delete_by_id_id_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -219,8 +219,8 @@ mod tests {
         Ok(())
     }
 
-    #[serial]
     #[tokio::test]
+    #[serial]
     async fn test_update_by_id_id_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -250,8 +250,8 @@ mod tests {
         Ok(())
     }
 
-    #[serial]
     #[tokio::test]
+    #[serial]
     async fn test_update_by_id_id_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
