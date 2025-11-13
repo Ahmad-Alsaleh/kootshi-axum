@@ -22,3 +22,8 @@ pub struct UpdatePasswordPayload {
     pub new_password: String,
     pub confirm_new_password: String,
 }
+
+#[derive(Deserialize)]
+pub struct CreateCompanyPayload {
+    pub name: String,
+}
