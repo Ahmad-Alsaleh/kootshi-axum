@@ -63,6 +63,7 @@ async fn login(
 
     // TODO: set a max age and use refresh tokens
     // TODO: explicitly set all security-critical fields of the cookie
+    // TODO: consider using a jwt_salt/auth_token_salt
     let cookie = Cookie::build(("auth-token", jwt_encoded_token))
         .path("/")
         .http_only(true)

@@ -50,6 +50,7 @@ where
 
         let jwt_encoded_token = cookie.value();
 
+        // TODO: consider using a jwt_salt/auth_token_salt
         let token_data = jsonwebtoken::decode::<JwtToken>(
             jwt_encoded_token.as_bytes(),
             &DecodingKey::from_secret(&config().jwt_key),
@@ -65,7 +66,7 @@ impl<S> OptionalFromRequestParts<S> for JwtToken
 where
     S: Send + Sync,
 {
-    type Rejection = ();
+    type Rejection = (); // using the unit type since an error will never occur
 
     async fn from_request_parts(
         parts: &mut Parts,
