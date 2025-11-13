@@ -42,3 +42,4 @@ impl SecretManager {
 }
 
 // TODO: implement tests
+// for hash_secret, hardcode the salt and use an online hash and compare with my implementation
