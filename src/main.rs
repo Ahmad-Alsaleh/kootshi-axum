@@ -27,8 +27,15 @@ async fn main() {
         .await
         .expect("failed to bind TCP listener");
 
-    println!("Litening at `{}`", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.unwrap();
+    println!(
+        "Litening at `{}`",
+        listener
+            .local_addr()
+            .expect("failed to get address of TCP listener")
+    );
+    axum::serve(listener, app)
+        .await
+        .expect("axum::serve never retruns");
 }
 
 fn get_app_router(model_manager: ModelManager) -> Router {
