@@ -1,4 +1,4 @@
-use crate::errors::error_impl;
+use crate::{controllers::CompanyControllerError, errors::error_impl};
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -17,9 +17,12 @@ pub enum ServerError {
     JwtError(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
     JwtTokenNotFoundInCookies,
     DataBase(String),
+    CompanyNameAlreadyExists,
 }
 
 error_impl!(ServerError);
+
+// TODO: impl From<CompanyControllerError> for ServerError
 
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
@@ -29,9 +32,9 @@ impl IntoResponse for ServerError {
             | Self::JwtError(_)
             | Self::JwtTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
             Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::PasswordAndConfirmPasswordAreDifferent | Self::UsernameAlreadyExists => {
-                StatusCode::BAD_REQUEST
-            }
+            Self::PasswordAndConfirmPasswordAreDifferent
+            | Self::UsernameAlreadyExists
+            | Self::CompanyNameAlreadyExists => StatusCode::BAD_REQUEST,
         };
         let mut response = status_code.into_response();
         response.extensions_mut().insert(self);

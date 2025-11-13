@@ -8,6 +8,7 @@ pub enum ClientError {
     LoginNeeded,
     FailedWhileRetrievingData,
     UsernameAlreadyExists,
+    CompanyNameAlreadyExists,
     PasswordAndConfirmPasswordAreDifferent,
 }
 
@@ -25,6 +26,7 @@ impl From<&ServerError> for ClientError {
                 Self::PasswordAndConfirmPasswordAreDifferent
             }
             ServerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
+            ServerError::CompanyNameAlreadyExists => Self::CompanyNameAlreadyExists,
         }
     }
 }
