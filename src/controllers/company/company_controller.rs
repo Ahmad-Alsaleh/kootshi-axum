@@ -1,4 +1,7 @@
-use crate::models::{Company, ModelManager};
+use crate::{
+    controllers::CompanyControllerError,
+    models::{Company, ModelManager},
+};
 use uuid::Uuid;
 
 pub struct CompanyController;
@@ -8,50 +11,67 @@ pub struct CompanyController;
 // TODO: make a custom error CompanyControllerError to be consistent with UserControllerError
 
 impl CompanyController {
-    pub async fn create(model_manager: &ModelManager, name: &str) -> Result<Uuid, sqlx::Error> {
-        sqlx::query_scalar("INSERT INTO companies (name) VALUES ($1) RETURNING id")
+    pub async fn create(
+        model_manager: &ModelManager,
+        name: &str,
+    ) -> Result<Uuid, CompanyControllerError> {
+        let result = sqlx::query_scalar("INSERT INTO companies (name) VALUES ($1) RETURNING id")
             .bind(name)
             .fetch_one(model_manager.db())
-            .await
+            .await;
+
+        match result {
+            Ok(id) => Ok(id),
+            Err(sqlx::Error::Database(err)) if err.constraint() == Some("companies_name_key") => {
+                Err(CompanyControllerError::CompanyNameAlreadyExists)
+            }
+            Err(err) => Err(CompanyControllerError::Sqlx(err)),
+        }
     }
 
-    pub async fn get_all(model_manager: &ModelManager) -> Result<Vec<Company>, sqlx::Error> {
+    pub async fn get_all(
+        model_manager: &ModelManager,
+    ) -> Result<Vec<Company>, CompanyControllerError> {
         sqlx::query_as("SELECT * FROM companies")
             .fetch_all(model_manager.db())
             .await
+            .map_err(CompanyControllerError::Sqlx)
     }
 
     pub async fn get_by_id(
         model_manager: &ModelManager,
         id: Uuid,
-    ) -> Result<Option<Company>, sqlx::Error> {
+    ) -> Result<Option<Company>, CompanyControllerError> {
         sqlx::query_as("SELECT * FROM companies WHERE id = $1")
             .bind(id)
             .fetch_optional(model_manager.db())
             .await
+            .map_err(CompanyControllerError::Sqlx)
     }
 
     pub async fn delete_by_id(
         model_manager: &ModelManager,
         id: Uuid,
-    ) -> Result<Option<Company>, sqlx::Error> {
+    ) -> Result<Option<Company>, CompanyControllerError> {
         sqlx::query_as("DELETE FROM companies WHERE id = $1 RETURNING *")
             .bind(id)
             .fetch_optional(model_manager.db())
             .await
+            .map_err(CompanyControllerError::Sqlx)
     }
 
     pub async fn update_by_id(
         model_manager: &ModelManager,
         id: Uuid,
         new_name: &str,
-    ) -> Result<Option<Company>, sqlx::Error> {
-        // TODO: consider returning a UserNotFound error
+    ) -> Result<Option<Company>, CompanyControllerError> {
+        // TODO: consider returning a CompanyNotFound error
         sqlx::query_as("UPDATE companies SET name = $1 WHERE id = $2 RETURNING *")
             .bind(new_name)
             .bind(id)
             .fetch_optional(model_manager.db())
             .await
+            .map_err(CompanyControllerError::Sqlx)
     }
 }
 
