@@ -100,7 +100,7 @@ mod tests {
     use anyhow::Context;
 
     #[tokio::test]
-    async fn test_get_by_username_user_found() -> anyhow::Result<()> {
+    async fn test_get_by_username_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -115,7 +115,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_by_username_user_not_found() -> anyhow::Result<()> {
+    async fn test_get_by_username_err_user_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -129,7 +129,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_update_password_by_username_user_found() -> anyhow::Result<()> {
+    async fn test_update_password_by_username_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // prepare
@@ -175,7 +175,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_update_password_by_username_user_not_found() -> anyhow::Result<()> {
+    async fn test_update_password_by_username_err_user_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -239,7 +239,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_insert_user_username_already_exists() -> anyhow::Result<()> {
+    async fn test_insert_user_err_username_already_exists() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // prepare
