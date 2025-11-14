@@ -1,6 +1,7 @@
+use anyhow::Context;
 use axum::http::StatusCode;
+use serde::Deserialize;
 use serde_json::json;
-use std::str::FromStr;
 use uuid::Uuid;
 
 // TODO: test the output (logs) of the server. ig a good way of doing it is by running the server
@@ -24,41 +25,75 @@ const DEV_BASE_URL: &str = "http://localhost:1948";
 // it passes
 
 #[tokio::test]
-async fn login_success() {
+async fn login_ok() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // exec
     let request_body = json!({"username": "ahmad.alsaleh", "password": "passme"});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
 
     let status = response.status();
-    let content_type = response.header("Content-Type").unwrap();
     let response_body = response.json_body().unwrap();
     let set_cookie_header = response.header("set-cookie").unwrap();
 
-    assert_eq!(status, StatusCode::OK);
-    assert!(content_type.starts_with("application/json"));
-    assert!(
-        response_body
-            .get("auth_token")
-            .map(|token| Uuid::from_str(token.as_str().unwrap()))
-            .is_some()
-    );
+    // check status code
+    assert_eq!(status, 200);
+
+    // check response body
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        auth_token: String,
+    }
+    let schema = Schema::deserialize(response_body)
+        .context("response body does not match expected schema")?;
+    assert_eq!(schema.auth_token.split('.').count(), 3);
+
+    // check headers
     assert!(set_cookie_header.starts_with("auth-token="));
     assert!(client.cookie("auth-token").is_some());
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn login_wrong_body() {
+async fn login_err_username_not_found() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-    let request_body = json!("wrong-body");
+
+    // exec
+    let request_body = json!({"username": "invalid_username", "password": "passme"});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
 
     let status = response.status();
+    let response_body = response.json_body().unwrap();
 
-    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    // check status code
+    assert_eq!(status, 401);
+
+    // check response body
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        message: String,
+        request_id: Uuid,
+        status: u16,
+    }
+    let schema = Schema::deserialize(response_body)
+        .context("response body does not match expected schema")?;
+    assert_eq!(schema.message, "invalid_username_or_password");
+    assert_eq!(schema.status, 401);
+
+    // check headers
+    assert!(response.header("set-cookie").is_none());
+
+    // check client cookies
+    assert!(client.cookie("auth-token").is_none());
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn login_wrong_credentials() {
+async fn login_err_wrong_password() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
     let request_body = json!({"username": "ahmad.alsaleh", "password": "wrong-password"});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
@@ -77,4 +112,16 @@ async fn login_wrong_credentials() {
             "request_id": response_body.get("request_id").unwrap(),
         })
     );
+}
+
+#[tokio::test]
+async fn login_err_wrong_body() {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // exec
+    let request_body = json!("wrong-body");
+    let response = client.do_post("/auth/login", request_body).await.unwrap();
+
+    // check
+    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
 }

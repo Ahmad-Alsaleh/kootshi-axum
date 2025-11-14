@@ -175,6 +175,7 @@ async fn delete_company_err_company_not_found() -> anyhow::Result<()> {
     // check status code
     assert_eq!(response.status(), 400);
 
+    // TODO: make a macro that checks message and status
     // check response body
     #[derive(Deserialize)]
     #[allow(unused)]
