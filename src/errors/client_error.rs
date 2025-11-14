@@ -10,6 +10,7 @@ pub enum ClientError {
     UsernameAlreadyExists,
     CompanyNameAlreadyExists,
     PasswordAndConfirmPasswordAreDifferent,
+    CompanyNotFound,
 }
 
 error_impl!(ClientError);
@@ -27,6 +28,7 @@ impl From<&ServerError> for ClientError {
             }
             ServerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
             ServerError::CompanyNameAlreadyExists => Self::CompanyNameAlreadyExists,
+            ServerError::CompanyNotFound => Self::CompanyNotFound,
         }
     }
 }

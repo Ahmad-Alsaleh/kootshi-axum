@@ -22,6 +22,7 @@ pub enum ServerError {
     JwtTokenNotFoundInCookies,
     DataBase(String),
     CompanyNameAlreadyExists,
+    CompanyNotFound,
 }
 
 error_impl!(ServerError);
@@ -40,6 +41,7 @@ impl From<CompanyControllerError> for ServerError {
     fn from(company_controller_error: CompanyControllerError) -> Self {
         match company_controller_error {
             CompanyControllerError::CompanyNameAlreadyExists => Self::CompanyNameAlreadyExists,
+            CompanyControllerError::CompanyNotFound => Self::CompanyNotFound,
             CompanyControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
         }
     }
@@ -60,14 +62,15 @@ impl From<SecretDoesNotMatchTarget> for ServerError {
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         let status_code = match self {
-            Self::UsernameNotFound
+            Self::UsernameNotFound // TODO: maybe `UsernameNotFound ` should be `BAD_REQUEST`
             | Self::WrongPassword
             | Self::JwtError(_)
             | Self::JwtTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
             Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::PasswordAndConfirmPasswordAreDifferent
             | Self::UsernameAlreadyExists
-            | Self::CompanyNameAlreadyExists => StatusCode::BAD_REQUEST,
+            | Self::CompanyNameAlreadyExists
+            | Self::CompanyNotFound => StatusCode::BAD_REQUEST,
         };
         let mut response = status_code.into_response();
         response.extensions_mut().insert(self);

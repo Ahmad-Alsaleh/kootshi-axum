@@ -36,30 +36,16 @@ impl CompanyController {
             .map_err(CompanyControllerError::Sqlx)
     }
 
-    // TODO: remove me
-    #[allow(dead_code)]
-    pub async fn get_by_id(
+    pub async fn delete_by_name(
         model_manager: &ModelManager,
-        id: Uuid,
-    ) -> Result<Option<Company>, CompanyControllerError> {
-        sqlx::query_as("SELECT * FROM companies WHERE id = $1")
-            .bind(id)
+        name: &str,
+    ) -> Result<Uuid, CompanyControllerError> {
+        sqlx::query_scalar::<_, Uuid>("DELETE FROM companies WHERE name = $1 RETURNING id")
+            .bind(name)
             .fetch_optional(model_manager.db())
             .await
-            .map_err(CompanyControllerError::Sqlx)
-    }
-
-    // TODO: remove me
-    #[allow(dead_code)]
-    pub async fn delete_by_id(
-        model_manager: &ModelManager,
-        id: Uuid,
-    ) -> Result<Option<Company>, CompanyControllerError> {
-        sqlx::query_as("DELETE FROM companies WHERE id = $1 RETURNING *")
-            .bind(id)
-            .fetch_optional(model_manager.db())
-            .await
-            .map_err(CompanyControllerError::Sqlx)
+            .map_err(CompanyControllerError::Sqlx)?
+            .ok_or(CompanyControllerError::CompanyNotFound)
     }
 
     // TODO: remove me
@@ -75,13 +61,17 @@ impl CompanyController {
             .bind(id)
             .fetch_optional(model_manager.db())
             .await
+            // TODO: return CompanyNotFound instead of None
             .map_err(CompanyControllerError::Sqlx)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{controllers::CompanyController, models::ModelManager};
+    use crate::{
+        controllers::{CompanyController, CompanyControllerError},
+        models::ModelManager,
+    };
     use anyhow::Context;
     use serial_test::serial;
     use std::collections::HashSet;
@@ -177,28 +167,26 @@ mod tests {
 
     #[tokio::test]
     #[serial]
-    async fn test_delete_by_id_id_found() -> anyhow::Result<()> {
+    async fn test_delete_by_name_name_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
-        // prepare
-        let (id, name): (Uuid, String) = sqlx::query_as("SELECT id, name FROM companies LIMIT 1")
-            .fetch_one(model_manager.db())
-            .await
-            .context("failed while fetching the id and name of a previously inserted company")?;
-
         // exec
-        let company = CompanyController::delete_by_id(&model_manager, id)
+        let id = CompanyController::delete_by_name(&model_manager, "Al Joker")
             .await
-            .with_context(|| format!("failed while deleting company with id: `{id}`"))?;
+            .context("failed while deleting company")?;
 
         // check
-        assert!(company.is_some());
-        assert_eq!(company.unwrap().name, name);
+        let result = sqlx::query("SELECT * FROM companies WHERE id = $1 OR name = 'Al Joker'")
+            .bind(id)
+            .fetch_optional(model_manager.db())
+            .await
+            .context("failed while fetching deleted company")?;
+
+        assert!(result.is_none());
 
         // clean
-        sqlx::query("INSERT INTO companies (id, name) VALUES ($1, $2)")
+        sqlx::query("INSERT INTO companies (id, name) VALUES ($1, 'Al Joker')")
             .bind(id)
-            .bind(name)
             .execute(model_manager.db())
             .await
             .context("failed while inserting deleted company")?;
@@ -208,17 +196,17 @@ mod tests {
 
     #[tokio::test]
     #[serial]
-    async fn test_delete_by_id_id_not_found() -> anyhow::Result<()> {
+    async fn test_delete_by_name_name_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let id = Uuid::new_v4();
-        let company = CompanyController::delete_by_id(&model_manager, id)
-            .await
-            .with_context(|| format!("failed while deleting company with id: `{id}`"))?;
+        let result = CompanyController::delete_by_name(&model_manager, "name does not exist").await;
 
         // check
-        assert!(company.is_none());
+        assert!(matches!(
+            result,
+            Err(CompanyControllerError::CompanyNotFound)
+        ));
 
         Ok(())
     }
