@@ -6,9 +6,7 @@ use uuid::Uuid;
 
 pub struct CompanyController;
 
-// TODO: consider passing a DTO for create and update when the Company model becomes more complex
-
-// TODO: make a custom error CompanyControllerError to be consistent with UserControllerError
+// TODO: (later) consider passing a DTO for create and update when the Company model becomes more complex
 
 impl CompanyController {
     pub async fn create(
@@ -38,6 +36,8 @@ impl CompanyController {
             .map_err(CompanyControllerError::Sqlx)
     }
 
+    // TODO: remove me
+    #[allow(dead_code)]
     pub async fn get_by_id(
         model_manager: &ModelManager,
         id: Uuid,
@@ -49,6 +49,8 @@ impl CompanyController {
             .map_err(CompanyControllerError::Sqlx)
     }
 
+    // TODO: remove me
+    #[allow(dead_code)]
     pub async fn delete_by_id(
         model_manager: &ModelManager,
         id: Uuid,
@@ -60,6 +62,8 @@ impl CompanyController {
             .map_err(CompanyControllerError::Sqlx)
     }
 
+    // TODO: remove me
+    #[allow(dead_code)]
     pub async fn update_by_id(
         model_manager: &ModelManager,
         id: Uuid,
