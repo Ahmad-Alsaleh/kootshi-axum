@@ -18,8 +18,8 @@ pub enum ServerError {
     WrongPassword,
     PasswordAndConfirmPasswordAreDifferent,
     UsernameAlreadyExists,
-    JwtError(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
-    JwtTokenNotFoundInCookies,
+    AuthTokenErr(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
+    AuthTokenNotFoundInCookies,
     DataBase(String),
     CompanyNameAlreadyExists,
     CompanyNotFound,
@@ -49,7 +49,7 @@ impl From<CompanyControllerError> for ServerError {
 
 impl From<jsonwebtoken::errors::Error> for ServerError {
     fn from(err: jsonwebtoken::errors::Error) -> Self {
-        Self::JwtError(err)
+        Self::AuthTokenErr(err)
     }
 }
 
@@ -64,8 +64,8 @@ impl IntoResponse for ServerError {
         let status_code = match self {
             Self::UsernameNotFound // TODO: maybe `UsernameNotFound ` should be `BAD_REQUEST`
             | Self::WrongPassword
-            | Self::JwtError(_)
-            | Self::JwtTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
+            | Self::AuthTokenErr(_)
+            | Self::AuthTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
             Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::PasswordAndConfirmPasswordAreDifferent
             | Self::UsernameAlreadyExists

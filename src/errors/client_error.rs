@@ -21,7 +21,9 @@ impl From<&ServerError> for ClientError {
             ServerError::UsernameNotFound | ServerError::WrongPassword => {
                 Self::InvalidUsernameOrPassword
             }
-            ServerError::JwtError(_) | ServerError::JwtTokenNotFoundInCookies => Self::LoginNeeded,
+            ServerError::AuthTokenErr(_) | ServerError::AuthTokenNotFoundInCookies => {
+                Self::LoginNeeded
+            }
             ServerError::DataBase(_) => Self::FailedWhileRetrievingData,
             ServerError::PasswordAndConfirmPasswordAreDifferent => {
                 Self::PasswordAndConfirmPasswordAreDifferent

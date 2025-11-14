@@ -38,7 +38,7 @@ async fn login_success() {
     assert!(content_type.starts_with("application/json"));
     assert!(
         response_body
-            .get("token")
+            .get("auth_token")
             .map(|token| Uuid::from_str(token.as_str().unwrap()))
             .is_some()
     );

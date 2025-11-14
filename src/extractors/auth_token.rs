@@ -14,25 +14,25 @@ use tower_cookies::Cookies;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct JwtToken {
+pub struct AuthToken {
     pub user_id: Uuid,
     exp: u64,
 }
 
-impl JwtToken {
+impl AuthToken {
     pub fn new(user_id: Uuid) -> Self {
         Self {
             user_id,
             exp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("UNIX_EPOCH is in the past")
-                .add(config().jwt_exp_duration)
+                .add(config().auth_token_exp_duration)
                 .as_secs(),
         }
     }
 }
 
-impl<S> FromRequestParts<S> for JwtToken
+impl<S> FromRequestParts<S> for AuthToken
 where
     S: Send + Sync,
 {
@@ -45,15 +45,15 @@ where
             .expect("`CookieManagerLayer` is enabled");
 
         let Some(cookie) = cookies.get("auth-token") else {
-            return Err(ServerError::JwtTokenNotFoundInCookies);
+            return Err(ServerError::AuthTokenNotFoundInCookies);
         };
 
-        let jwt_encoded_token = cookie.value();
+        let encoded_auth_token = cookie.value();
 
-        // TODO: consider using a jwt_salt/auth_token_salt
-        let token_data = jsonwebtoken::decode::<JwtToken>(
-            jwt_encoded_token.as_bytes(),
-            &DecodingKey::from_secret(&config().jwt_key),
+        // TODO: consider using an auth_token_salt
+        let token_data = jsonwebtoken::decode::<AuthToken>(
+            encoded_auth_token.as_bytes(),
+            &DecodingKey::from_secret(&config().auth_token_key),
             &Validation::new(Algorithm::HS256),
         )?;
 
@@ -61,7 +61,7 @@ where
     }
 }
 
-impl<S> OptionalFromRequestParts<S> for JwtToken
+impl<S> OptionalFromRequestParts<S> for AuthToken
 where
     S: Send + Sync,
 {
@@ -71,7 +71,7 @@ where
         parts: &mut Parts,
         state: &S,
     ) -> Result<Option<Self>, Self::Rejection> {
-        let jwt_token = <Self as FromRequestParts<S>>::from_request_parts(parts, state).await;
-        Ok(jwt_token.ok())
+        let auth_token = <Self as FromRequestParts<S>>::from_request_parts(parts, state).await;
+        Ok(auth_token.ok())
     }
 }

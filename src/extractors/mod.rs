@@ -1,3 +1,3 @@
-mod jwt_token;
+mod auth_token;
 
-pub use jwt_token::JwtToken;
+pub use auth_token::AuthToken;

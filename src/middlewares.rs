@@ -1,6 +1,6 @@
 use crate::{
     errors::{ClientError, ServerError},
-    extractors::JwtToken,
+    extractors::AuthToken,
     models::RequestLogInfo,
 };
 use axum::{
@@ -20,11 +20,11 @@ pub async fn generate_request_id(mut request: Request) -> Request {
 }
 
 pub async fn authenticate(
-    jwt_token: Result<JwtToken, ServerError>,
+    auth_token: Result<AuthToken, ServerError>,
     request: Request,
     next: Next,
 ) -> Result<Response, ServerError> {
-    match jwt_token {
+    match auth_token {
         Ok(_) => Ok(next.run(request).await),
         Err(err) => Err(err),
     }
@@ -52,14 +52,14 @@ pub async fn map_response(Extension(request_id): Extension<Uuid>, response: Resp
 
 pub async fn log_response(
     Extension(request_id): Extension<Uuid>,
-    jwt_token: Option<JwtToken>,
+    auth_token: Option<AuthToken>,
     method: Method,
     uri: Uri,
     response: Response,
 ) -> Response {
     let server_error = response.extensions().get::<ServerError>();
     let client_error = response.extensions().get::<ClientError>();
-    let user_id = jwt_token.map(|token| token.user_id);
+    let user_id = auth_token.map(|token| token.user_id);
 
     let log_line = RequestLogInfo::new(
         request_id,

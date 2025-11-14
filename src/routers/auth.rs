@@ -2,7 +2,7 @@ use crate::{
     configs::config,
     controllers::UserController,
     errors::ServerError,
-    extractors::JwtToken,
+    extractors::AuthToken,
     models::{
         LoginPayload, ModelManager, SignupPayload, UpdatePasswordPayload, UserForInsertUser,
         UserForLogin,
@@ -41,21 +41,21 @@ async fn login(
         &user.password_hash,
     )?;
 
-    let jwt_token = JwtToken::new(user.id);
-    let jwt_encoded_token = jsonwebtoken::encode(
+    let auth_token = AuthToken::new(user.id);
+    let encoded_auth_token = jsonwebtoken::encode(
         &Header::new(Algorithm::HS256),
-        &jwt_token,
-        &EncodingKey::from_secret(&config().jwt_key),
+        &auth_token,
+        &EncodingKey::from_secret(&config().auth_token_key),
     )?;
 
     let response = json!({
-        "token": jwt_encoded_token
+        "auth_token": encoded_auth_token
     });
 
     // TODO: set a max age and use refresh tokens
     // TODO: explicitly set all security-critical fields of the cookie
-    // TODO: consider using a jwt_salt/auth_token_salt
-    let cookie = Cookie::build(("auth-token", jwt_encoded_token))
+    // TODO: consider using an auth_token_salt
+    let cookie = Cookie::build(("auth-token", encoded_auth_token))
         .path("/")
         .http_only(true)
         .same_site(SameSite::Lax) // TODO: should this be strict?
