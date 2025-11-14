@@ -1,5 +1,5 @@
 use crate::{
-    controllers::{CompanyController, CompanyControllerError},
+    controllers::CompanyController,
     errors::ServerError,
     middlewares::authenticate,
     models::{Company, CreateCompanyPayload, ModelManager},
@@ -20,10 +20,7 @@ pub fn get_router() -> Router<ModelManager> {
 async fn get_all_companies(
     State(model_manager): State<ModelManager>,
 ) -> Result<Json<Vec<Company>>, ServerError> {
-    let companies = CompanyController::get_all(&model_manager)
-        .await
-        // TODO: handel all CompanyControllerError cases
-        .map_err(|err| ServerError::DataBase(err.to_string()))?;
+    let companies = CompanyController::get_all(&model_manager).await?;
     Ok(Json(companies))
 }
 
@@ -31,17 +28,7 @@ async fn create_company(
     State(model_manager): State<ModelManager>,
     Json(create_company_payload): Json<CreateCompanyPayload>,
 ) -> Result<impl IntoResponse, ServerError> {
-    let result = CompanyController::create(&model_manager, &create_company_payload.name).await;
-
-    let id = match result {
-        Ok(id) => id,
-        Err(CompanyControllerError::CompanyNameAlreadyExists) => {
-            return Err(ServerError::CompanyNameAlreadyExists);
-        }
-        Err(CompanyControllerError::Sqlx(err)) => {
-            return Err(ServerError::DataBase(err.to_string()));
-        }
-    };
+    let id = CompanyController::create(&model_manager, &create_company_payload.name).await?;
 
     let response = json!({
         "company_id": id

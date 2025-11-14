@@ -55,8 +55,7 @@ where
             jwt_encoded_token.as_bytes(),
             &DecodingKey::from_secret(&config().jwt_key),
             &Validation::new(Algorithm::HS256),
-        )
-        .map_err(ServerError::JwtError)?;
+        )?;
 
         Ok(token_data.claims)
     }

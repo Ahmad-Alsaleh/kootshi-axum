@@ -1,4 +1,8 @@
-use crate::{controllers::CompanyControllerError, errors::error_impl};
+use crate::{
+    controllers::{CompanyControllerError, UserControllerError},
+    errors::error_impl,
+    secrets::SecretDoesNotMatchTarget,
+};
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -22,7 +26,36 @@ pub enum ServerError {
 
 error_impl!(ServerError);
 
-// TODO: impl From<CompanyControllerError> for ServerError
+impl From<UserControllerError> for ServerError {
+    fn from(user_controller_error: UserControllerError) -> Self {
+        match user_controller_error {
+            UserControllerError::UserNotFound => Self::UsernameNotFound,
+            UserControllerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
+            UserControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
+        }
+    }
+}
+
+impl From<CompanyControllerError> for ServerError {
+    fn from(company_controller_error: CompanyControllerError) -> Self {
+        match company_controller_error {
+            CompanyControllerError::CompanyNameAlreadyExists => Self::CompanyNameAlreadyExists,
+            CompanyControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
+        }
+    }
+}
+
+impl From<jsonwebtoken::errors::Error> for ServerError {
+    fn from(err: jsonwebtoken::errors::Error) -> Self {
+        Self::JwtError(err)
+    }
+}
+
+impl From<SecretDoesNotMatchTarget> for ServerError {
+    fn from(_err: SecretDoesNotMatchTarget) -> Self {
+        Self::WrongPassword
+    }
+}
 
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {

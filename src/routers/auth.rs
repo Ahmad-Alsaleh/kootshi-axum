@@ -1,6 +1,6 @@
 use crate::{
     configs::config,
-    controllers::{UserController, UserControllerError},
+    controllers::UserController,
     errors::ServerError,
     extractors::JwtToken,
     models::{
@@ -32,30 +32,21 @@ async fn login(
 ) -> Result<Json<Value>, ServerError> {
     let user =
         UserController::get_by_username::<UserForLogin>(&model_manager, &login_payload.username)
-            .await;
-
-    let user = match user {
-        Ok(user) => user,
-        Err(UserControllerError::UserNotFound) => return Err(ServerError::UsernameNotFound),
-        Err(UserControllerError::Sqlx(err)) => return Err(ServerError::DataBase(err.to_string())),
-        Err(UserControllerError::UsernameAlreadyExists) => unreachable!(),
-    };
+            .await?;
 
     SecretManager::verify_secret(
         &login_payload.password,
         &user.password_salt,
         &config().password_key,
         &user.password_hash,
-    )
-    .map_err(|_| ServerError::WrongPassword)?;
+    )?;
 
     let jwt_token = JwtToken::new(user.id);
     let jwt_encoded_token = jsonwebtoken::encode(
         &Header::new(Algorithm::HS256),
         &jwt_token,
         &EncodingKey::from_secret(&config().jwt_key),
-    )
-    .map_err(ServerError::JwtError)?;
+    )?;
 
     let response = json!({
         "token": jwt_encoded_token
@@ -96,17 +87,9 @@ async fn signup(
         last_name: signup_payload.last_name,
     };
 
-    let result = UserController::insert_user(&model_manager, user).await;
+    UserController::insert_user(&model_manager, user).await?;
 
-    match result {
-        Ok(_id) => Ok(Json("success")),
-        Err(UserControllerError::UsernameAlreadyExists) => Err(ServerError::UsernameAlreadyExists),
-        Err(UserControllerError::Sqlx(err)) => Err(ServerError::DataBase(err.to_string())),
-        // TODO: consider having a different error for each controller function, and use From trait
-        // to ease converting between errors (eg: update_password calls get_user, which will have
-        // two error types)
-        Err(UserControllerError::UserNotFound) => unreachable!(),
-    }
+    Ok(Json("success"))
 }
 
 async fn update_password(
@@ -119,18 +102,12 @@ async fn update_password(
 
     // TODO: validate the password (length, at least one special char, at least one number, etc.)
 
-    let result = UserController::update_password_by_username(
+    UserController::update_password_by_username(
         &model_manager,
         &update_password_payload.username,
         &update_password_payload.new_password,
     )
-    .await;
+    .await?;
 
-    match result {
-        Ok(()) => Ok(Json("success")),
-        Err(UserControllerError::UserNotFound) => Err(ServerError::UsernameNotFound),
-        Err(UserControllerError::Sqlx(err)) => Err(ServerError::DataBase(err.to_string())),
-        // TODO: see todo in signup() to get rid of unreachable!()
-        Err(UserControllerError::UsernameAlreadyExists) => unreachable!(),
-    }
+    Ok(Json("success"))
 }
