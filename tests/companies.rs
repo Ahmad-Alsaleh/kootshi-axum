@@ -77,5 +77,11 @@ async fn post_companies_200() -> anyhow::Result<()> {
         .parse::<Uuid>()
         .context("returned company_id is not valid UUID")?;
 
+    // clean
+    client
+        .do_delete("/companies/name of new company")
+        .await
+        .unwrap();
+
     Ok(())
 }
