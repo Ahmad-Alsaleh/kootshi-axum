@@ -73,7 +73,7 @@ async fn post_companies_200() -> anyhow::Result<()> {
     login!(client);
 
     // exec
-    let request_body = json!({"name": "name of new company"});
+    let request_body = json!({"name": "new-company"});
     let response = client.do_post("/companies", request_body).await.unwrap();
     let response_body = response.json_body().unwrap();
     dbg!(&response_body);
@@ -91,11 +91,25 @@ async fn post_companies_200() -> anyhow::Result<()> {
     // not in the schema
     Schema::deserialize(response_body).context("response body does not match expected schema")?;
 
+    // check correct execution
+    assert!(
+        client
+            .do_get("/companies/new-company")
+            .await
+            .unwrap()
+            .status()
+            .is_success()
+    );
+
     // clean
-    client
-        .do_delete("/companies/name of new company")
-        .await
-        .unwrap();
+    assert!(
+        client
+            .do_delete("/companies/new-company")
+            .await
+            .unwrap()
+            .status()
+            .is_success()
+    );
 
     Ok(())
 }
@@ -127,6 +141,76 @@ async fn post_companies_400() -> anyhow::Result<()> {
     let schema = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "company_name_already_exists");
+    assert_eq!(schema.status, 400);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn delete_companies_202() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // prepare
+    login!(client);
+    let request_body = json!({"name": "temp-name"});
+    assert!(
+        client
+            .do_post("/companies", request_body)
+            .await
+            .unwrap()
+            .status()
+            .is_success()
+    );
+
+    // exec
+    let response = client.do_delete("/companies/temp-name").await.unwrap();
+
+    // check status code
+    assert_eq!(response.status(), 204);
+
+    // check response body
+    assert!(response.text_body().is_err());
+    assert!(response.json_body().is_err());
+
+    // check correct execution
+    assert_eq!(
+        client
+            .do_get("/companies/temp-name")
+            .await
+            .unwrap()
+            .status(),
+        400
+    );
+
+    Ok(())
+}
+
+// tests deleting a company that doesn't exist
+#[tokio::test]
+async fn delete_companies_400() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // prepare
+    login!(client);
+
+    // exec
+    let response = client.do_delete("/companies/invalid-name").await.unwrap();
+    let response_body = response.json_body().unwrap();
+
+    // check status code
+    assert_eq!(response.status(), 400);
+
+    // check response body
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        message: String,
+        request_id: Uuid,
+        status: u16,
+    }
+    let schema = Schema::deserialize(response_body)
+        .context("response body does not match expected schema")?;
+    assert_eq!(schema.message, "company_not_found");
     assert_eq!(schema.status, 400);
 
     Ok(())
