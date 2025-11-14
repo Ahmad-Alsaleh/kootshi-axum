@@ -27,7 +27,6 @@ impl CompanyController {
         }
     }
 
-    // TODO: test this function
     pub async fn get_by_name(
         model_manager: &ModelManager,
         company_name: &str,
@@ -60,23 +59,6 @@ impl CompanyController {
             .map_err(CompanyControllerError::Sqlx)?
             .ok_or(CompanyControllerError::CompanyNotFound)
     }
-
-    // TODO: remove me
-    #[allow(dead_code)]
-    pub async fn update_by_id(
-        model_manager: &ModelManager,
-        id: Uuid,
-        new_name: &str,
-    ) -> Result<Option<Company>, CompanyControllerError> {
-        // TODO: consider returning a CompanyNotFound error
-        sqlx::query_as("UPDATE companies SET name = $1 WHERE id = $2 RETURNING *")
-            .bind(new_name)
-            .bind(id)
-            .fetch_optional(model_manager.db())
-            .await
-            // TODO: return CompanyNotFound instead of None
-            .map_err(CompanyControllerError::Sqlx)
-    }
 }
 
 #[cfg(test)]
@@ -88,7 +70,6 @@ mod tests {
     };
     use anyhow::Context;
     use std::collections::HashSet;
-    use uuid::Uuid;
 
     #[tokio::test]
     async fn test_create_ok() -> anyhow::Result<()> {
@@ -118,7 +99,54 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_all() -> anyhow::Result<()> {
+    async fn test_create_err_name_exists() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let result = CompanyController::create(&model_manager, "Al Joker").await;
+
+        // check
+        assert!(matches!(
+            result,
+            Err(CompanyControllerError::CompanyNameAlreadyExists)
+        ));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_by_name_ok() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let company = CompanyController::get_by_name(&model_manager, "Al Joker")
+            .await
+            .context("failed while fetching company")?;
+
+        // check
+        assert_eq!(company.name, "Al Joker");
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_by_name_err_name_not_found() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let result = CompanyController::get_by_name(&model_manager, "in valid name").await;
+
+        // check
+        assert!(matches!(
+            result,
+            Err(CompanyControllerError::CompanyNotFound)
+        ));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_all_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -137,7 +165,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_delete_by_name_name_found() -> anyhow::Result<()> {
+    async fn test_delete_by_name_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -165,7 +193,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_delete_by_name_name_not_found() -> anyhow::Result<()> {
+    async fn test_delete_by_name_err_name_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
@@ -176,52 +204,6 @@ mod tests {
             result,
             Err(CompanyControllerError::CompanyNotFound)
         ));
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_update_by_id_id_found() -> anyhow::Result<()> {
-        let model_manager = ModelManager::new().await;
-
-        // prepare
-        let (id, name): (Uuid, String) = sqlx::query_as("SELECT id, name FROM companies LIMIT 1")
-            .fetch_one(model_manager.db())
-            .await
-            .context("failed while fetching the id and name of a previously inserted company")?;
-
-        // exec
-        let company = CompanyController::update_by_id(&model_manager, id, "my new company")
-            .await
-            .with_context(|| format!("failed while updating company with id: `{id}`"))?;
-
-        // check
-        assert!(company.is_some());
-        assert_eq!(company.unwrap().name, "my new company");
-
-        // clean
-        sqlx::query("UPDATE companies SET name = $1 WHERE id = $2 RETURNING *")
-            .bind(name)
-            .bind(id)
-            .execute(model_manager.db())
-            .await
-            .context("failed while changing company name to original name")?;
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_update_by_id_id_not_found() -> anyhow::Result<()> {
-        let model_manager = ModelManager::new().await;
-
-        // exec
-        let id = Uuid::new_v4();
-        let company = CompanyController::update_by_id(&model_manager, id, "new name")
-            .await
-            .with_context(|| format!("failed while updating company with id: `{id}`"))?;
-
-        // check
-        assert!(company.is_none());
 
         Ok(())
     }
