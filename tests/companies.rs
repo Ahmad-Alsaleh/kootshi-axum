@@ -1,6 +1,5 @@
 use anyhow::Context;
 use serde_json::json;
-use serial_test::serial;
 use std::collections::HashSet;
 use uuid::Uuid;
 
@@ -14,7 +13,17 @@ macro_rules! login {
 }
 
 #[tokio::test]
-#[serial]
+async fn get_companies_401() {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // exec
+    let response = client.do_get("/companies").await.unwrap();
+
+    // check
+    assert_eq!(response.status(), 401);
+}
+
+#[tokio::test]
 async fn get_companies() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
@@ -42,7 +51,6 @@ async fn get_companies() {
 
 // TODO: test all response cases of POST /companies (eg company name already exists)
 #[tokio::test]
-#[serial]
 async fn post_companies_200() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
