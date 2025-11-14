@@ -2,7 +2,7 @@ use crate::{
     controllers::CompanyController,
     errors::ServerError,
     middlewares::authenticate,
-    models::{Company, CreateCompanyPayload, DeleteCompanyPayload, ModelManager},
+    models::{Company, CreateCompanyPayload, ModelManager},
 };
 use axum::{
     Json, Router,

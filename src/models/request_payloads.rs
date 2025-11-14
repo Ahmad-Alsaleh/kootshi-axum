@@ -27,8 +27,3 @@ pub struct UpdatePasswordPayload {
 pub struct CreateCompanyPayload {
     pub name: String,
 }
-
-#[derive(Deserialize)]
-pub struct DeleteCompanyPayload {
-    pub name: String,
-}

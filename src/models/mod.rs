@@ -9,7 +9,7 @@ mod user;
 pub use company::Company;
 pub use request_log_info::RequestLogInfo;
 pub use request_payloads::{
-    CreateCompanyPayload, DeleteCompanyPayload, LoginPayload, SignupPayload, UpdatePasswordPayload,
+    CreateCompanyPayload, LoginPayload, SignupPayload, UpdatePasswordPayload,
 };
 pub use user::{UserForInsertUser, UserForLogin, UserForUpdatePassword, UserFromRow};
 
