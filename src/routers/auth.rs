@@ -9,7 +9,7 @@ use crate::{
     },
     secrets::SecretManager,
 };
-use axum::{Json, Router, extract::State, routing::post};
+use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
 use jsonwebtoken::{Algorithm, EncodingKey, Header};
 use serde_json::{Value, json};
 use tower_cookies::{Cookie, Cookies, cookie::SameSite};
@@ -68,7 +68,7 @@ async fn login(
 async fn signup(
     State(model_manager): State<ModelManager>,
     Json(signup_payload): Json<SignupPayload>,
-) -> Result<Json<&'static str>, ServerError> {
+) -> Result<impl IntoResponse, ServerError> {
     if signup_payload.password != signup_payload.confirm_password {
         return Err(ServerError::PasswordAndConfirmPasswordAreDifferent);
     }
@@ -87,9 +87,13 @@ async fn signup(
         last_name: signup_payload.last_name,
     };
 
-    UserController::insert_user(&model_manager, user).await?;
+    let id = UserController::insert_user(&model_manager, user).await?;
 
-    Ok(Json("success"))
+    let response = json!({
+        "user_id": id
+    });
+
+    Ok((StatusCode::CREATED, Json(response)))
 }
 
 async fn update_password(
