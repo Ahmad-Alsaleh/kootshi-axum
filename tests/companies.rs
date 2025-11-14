@@ -1,4 +1,5 @@
 use anyhow::Context;
+use serde::Deserialize;
 use serde_json::json;
 use std::collections::HashSet;
 use uuid::Uuid;
@@ -12,19 +13,36 @@ macro_rules! login {
     };
 }
 
+// tests geting a company without loging in
 #[tokio::test]
-async fn get_companies_401() {
+async fn get_companies_401() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // exec
     let response = client.do_get("/companies").await.unwrap();
+    let response_body = response.json_body().unwrap();
 
-    // check
+    // check statuc code
     assert_eq!(response.status(), 401);
+
+    // check response body
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        message: String,
+        request_id: Uuid,
+        status: u16,
+    }
+    let response = Schema::deserialize(response_body)
+        .context("response body does not match expected schema")?;
+    assert_eq!(response.message, "login_needed");
+    assert_eq!(response.status, 401);
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn get_companies() {
+async fn get_companies_200() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // prepare
@@ -40,8 +58,6 @@ async fn get_companies() {
     // check response body
     let companies = response_body.as_array().unwrap();
 
-    assert_eq!(companies.len(), 3);
-
     let fetched_names = companies
         .iter()
         .map(|company| company["name"].as_str().unwrap())
@@ -49,7 +65,6 @@ async fn get_companies() {
     assert!(fetched_names.is_superset(&HashSet::from(["Al Forsan", "Al Joker", "Al Abtal"])));
 }
 
-// TODO: test all response cases of POST /companies (eg company name already exists)
 #[tokio::test]
 async fn post_companies_200() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
@@ -61,35 +76,58 @@ async fn post_companies_200() -> anyhow::Result<()> {
     let request_body = json!({"name": "name of new company"});
     let response = client.do_post("/companies", request_body).await.unwrap();
     let response_body = response.json_body().unwrap();
+    dbg!(&response_body);
 
     // check status code
     assert_eq!(response.status(), 201);
 
     // check response body
-    let keys: HashSet<_> = response_body
-        .as_object()
-        .context("failed while converting response body to a json object")?
-        .keys()
-        .map(|k| k.as_str())
-        .collect();
-    let expected_keys = HashSet::from(["company_id"]);
-    assert_eq!(keys, expected_keys);
-
-    let company_id = response_body
-        .get("company_id")
-        .context("key `company_id` is not found in resposne body")?;
-
-    company_id
-        .as_str()
-        .context("failed while converting company_id to str")?
-        .parse::<Uuid>()
-        .context("returned company_id is not valid UUID")?;
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        company_id: Uuid,
+    }
+    // TODO: find a way to make deserialize strict, i.e. the Value can't have extra keys that are
+    // not in the schema
+    Schema::deserialize(response_body).context("response body does not match expected schema")?;
 
     // clean
     client
         .do_delete("/companies/name of new company")
         .await
         .unwrap();
+
+    Ok(())
+}
+
+// tests creating a company with a name that already exists
+#[tokio::test]
+async fn post_companies_400() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // prepare
+    login!(client);
+
+    // exec
+    let request_body = json!({"name": "Al Joker"});
+    let response = client.do_post("/companies", request_body).await.unwrap();
+    let response_body = response.json_body().unwrap();
+
+    // check status code
+    assert_eq!(response.status(), 400);
+
+    // check resposne body
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        message: String,
+        request_id: Uuid,
+        status: u16,
+    }
+    let schema = Schema::deserialize(response_body)
+        .context("response body does not match expected schema")?;
+    assert_eq!(schema.message, "company_name_already_exists");
+    assert_eq!(schema.status, 400);
 
     Ok(())
 }

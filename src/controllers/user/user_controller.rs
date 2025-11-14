@@ -89,6 +89,7 @@ impl UserController {
 }
 
 #[cfg(test)]
+#[serial_test::serial] // TODO: check if any of the tests below can be run in parallel to speed up tests
 mod tests {
     use crate::{
         configs::config,
@@ -97,10 +98,8 @@ mod tests {
         secrets::SecretManager,
     };
     use anyhow::Context;
-    use serial_test::serial;
 
     #[tokio::test]
-    #[serial]
     async fn test_get_by_username_user_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -116,7 +115,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_get_by_username_user_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -131,7 +129,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_update_password_by_username_user_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -178,7 +175,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_update_password_by_username_user_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -197,7 +193,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_insert_user_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -244,7 +239,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_insert_user_username_already_exists() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 

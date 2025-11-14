@@ -67,18 +67,17 @@ impl CompanyController {
 }
 
 #[cfg(test)]
+#[serial_test::serial] // TODO: check if any of the tests below can be run in parallel to speed up tests
 mod tests {
     use crate::{
         controllers::{CompanyController, CompanyControllerError},
         models::ModelManager,
     };
     use anyhow::Context;
-    use serial_test::serial;
     use std::collections::HashSet;
     use uuid::Uuid;
 
     #[tokio::test]
-    #[serial]
     async fn test_create_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -106,7 +105,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_get_all() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -126,7 +124,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_delete_by_name_name_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -155,7 +152,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_delete_by_name_name_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -172,7 +168,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_update_by_id_id_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
@@ -203,7 +198,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_update_by_id_id_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
