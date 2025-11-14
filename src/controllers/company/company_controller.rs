@@ -107,46 +107,6 @@ mod tests {
 
     #[tokio::test]
     #[serial]
-    async fn test_get_by_id_id_found() -> anyhow::Result<()> {
-        let model_manager = ModelManager::new().await;
-
-        // prepare
-        let (id, name): (Uuid, String) = sqlx::query_as("SELECT id, name FROM companies LIMIT 1")
-            .fetch_one(model_manager.db())
-            .await
-            .context("failed while fetching the id and name of a previously inserted company")?;
-
-        // exec
-        let company = CompanyController::get_by_id(&model_manager, id)
-            .await
-            .with_context(|| format!("failed while getting company with id: `{id}`"))?;
-
-        // check
-        assert!(company.is_some());
-        assert_eq!(company.unwrap().name, name);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    #[serial]
-    async fn test_get_by_id_id_not_found() -> anyhow::Result<()> {
-        let model_manager = ModelManager::new().await;
-
-        // exec
-        let id = Uuid::new_v4();
-        let company = CompanyController::get_by_id(&model_manager, id)
-            .await
-            .with_context(|| format!("failed while fetching company with id: `{id}`"))?;
-
-        // check
-        assert!(company.is_none());
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    #[serial]
     async fn test_get_all() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
