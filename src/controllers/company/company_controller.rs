@@ -27,6 +27,19 @@ impl CompanyController {
         }
     }
 
+    // TODO: test this function
+    pub async fn get_by_name(
+        model_manager: &ModelManager,
+        company_name: &str,
+    ) -> Result<Company, CompanyControllerError> {
+        sqlx::query_as("SELECT * FROM companies WHERE name = $1")
+            .bind(company_name)
+            .fetch_optional(model_manager.db())
+            .await
+            .map_err(CompanyControllerError::Sqlx)?
+            .ok_or(CompanyControllerError::CompanyNotFound)
+    }
+
     pub async fn get_all(
         model_manager: &ModelManager,
     ) -> Result<Vec<Company>, CompanyControllerError> {

@@ -10,14 +10,17 @@ use axum::{
     http::StatusCode,
     middleware,
     response::IntoResponse,
-    routing::{delete, get},
+    routing::get,
 };
 use serde_json::json;
 
 pub fn get_router() -> Router<ModelManager> {
     Router::new()
         .route("/companies", get(get_all_companies).post(create_company))
-        .route("/companies/{company_name}", delete(delete_company_by_name))
+        .route(
+            "/companies/{company_name}",
+            get(get_company).delete(delete_company),
+        )
         .route_layer(middleware::from_fn(authenticate))
 }
 
@@ -42,7 +45,15 @@ async fn create_company(
     Ok((StatusCode::CREATED, Json(response)))
 }
 
-async fn delete_company_by_name(
+async fn get_company(
+    State(model_manager): State<ModelManager>,
+    Path(company_name): Path<String>,
+) -> Result<Json<Company>, ServerError> {
+    let company = CompanyController::get_by_name(&model_manager, &company_name).await?;
+    Ok(Json(company))
+}
+
+async fn delete_company(
     State(model_manager): State<ModelManager>,
     Path(company_name): Path<String>,
 ) -> Result<impl IntoResponse, ServerError> {
