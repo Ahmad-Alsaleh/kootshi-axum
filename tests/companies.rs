@@ -13,36 +13,9 @@ macro_rules! login {
     };
 }
 
-// tests geting a company without loging in
+// GET /companies 200
 #[tokio::test]
-async fn get_companies_401() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // exec
-    let response = client.do_get("/companies").await.unwrap();
-    let response_body = response.json_body().unwrap();
-
-    // check statuc code
-    assert_eq!(response.status(), 401);
-
-    // check response body
-    #[derive(Deserialize)]
-    #[allow(unused)]
-    struct Schema {
-        message: String,
-        request_id: Uuid,
-        status: u16,
-    }
-    let response = Schema::deserialize(response_body)
-        .context("response body does not match expected schema")?;
-    assert_eq!(response.message, "login_needed");
-    assert_eq!(response.status, 401);
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn get_companies_200() {
+async fn get_all_companies_ok() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // prepare
@@ -65,8 +38,9 @@ async fn get_companies_200() {
     assert!(fetched_names.is_superset(&HashSet::from(["Al Forsan", "Al Joker", "Al Abtal"])));
 }
 
+// POST /companies 201
 #[tokio::test]
-async fn post_companies_200() -> anyhow::Result<()> {
+async fn create_company_ok() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // prepare
@@ -114,9 +88,9 @@ async fn post_companies_200() -> anyhow::Result<()> {
     Ok(())
 }
 
-// tests creating a company with a name that already exists
+// POST /companies 400
 #[tokio::test]
-async fn post_companies_400() -> anyhow::Result<()> {
+async fn create_company_err_name_exists() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // prepare
@@ -146,8 +120,9 @@ async fn post_companies_400() -> anyhow::Result<()> {
     Ok(())
 }
 
+// DELETE companies/{name} 202
 #[tokio::test]
-async fn delete_companies_202() -> anyhow::Result<()> {
+async fn delete_company_ok() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // prepare
@@ -185,9 +160,9 @@ async fn delete_companies_202() -> anyhow::Result<()> {
     Ok(())
 }
 
-// tests deleting a company that doesn't exist
+// DELETE /companies/{name} 400
 #[tokio::test]
-async fn delete_companies_400() -> anyhow::Result<()> {
+async fn delete_company_err_company_not_found() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // prepare
@@ -212,6 +187,94 @@ async fn delete_companies_400() -> anyhow::Result<()> {
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "company_not_found");
     assert_eq!(schema.status, 400);
+
+    Ok(())
+}
+
+// GET /companies/{name} 200
+#[tokio::test]
+async fn get_single_company_ok() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // prepare
+    login!(client);
+
+    // exec
+    let response = client.do_get("/companies/Al Joker").await.unwrap();
+    let response_body = response.json_body().unwrap();
+
+    // check status code
+    assert_eq!(response.status(), 200);
+
+    // check response body
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        id: Uuid,
+        name: String,
+    }
+    let schema = Schema::deserialize(response_body)
+        .context("response body does not match expected schema")?;
+    assert_eq!(schema.name, "Al Joker");
+
+    Ok(())
+}
+
+// GET /companies/{name} 400
+#[tokio::test]
+async fn get_single_company_err_company_not_found() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // prepare
+    login!(client);
+
+    // exec
+    let response = client.do_get("/companies/invalid-name").await.unwrap();
+    let response_body = response.json_body().unwrap();
+
+    // check status code
+    assert_eq!(response.status(), 400);
+
+    // check response body
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        message: String,
+        request_id: Uuid,
+        status: u16,
+    }
+    let schema = Schema::deserialize(response_body)
+        .context("response body does not match expected schema")?;
+    assert_eq!(schema.message, "company_not_found");
+    assert_eq!(schema.status, 400);
+
+    Ok(())
+}
+
+// tests geting a company without loging in
+#[tokio::test]
+async fn no_login() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // exec
+    let response = client.do_get("/companies").await.unwrap();
+    let response_body = response.json_body().unwrap();
+
+    // check statuc code
+    assert_eq!(response.status(), 401);
+
+    // check response body
+    #[derive(Deserialize)]
+    #[allow(unused)]
+    struct Schema {
+        message: String,
+        request_id: Uuid,
+        status: u16,
+    }
+    let response = Schema::deserialize(response_body)
+        .context("response body does not match expected schema")?;
+    assert_eq!(response.message, "login_needed");
+    assert_eq!(response.status, 401);
 
     Ok(())
 }
