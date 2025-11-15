@@ -10,6 +10,7 @@ pub struct SecretDoesNotMatchTarget;
 error_impl!(SecretDoesNotMatchTarget);
 
 // TODO: use argon2 instad of HMAC + SHA256
+// TODO: store hashed password as VARCHAR and use base64url
 
 impl SecretManager {
     pub fn generate_salt(salt: &mut [u8; 32]) {

@@ -17,8 +17,7 @@ pub fn get_router() -> Router<ModelManager> {
         .route("/signup", post(signup))
 }
 
-// TODO: allow the client to optionally pass a login token instead of the username (?) and password.
-// TODO: read online what happens if someone steals the jwt auth-token and uses it to login on a different device.
+// TODO: allow the client to optionally pass a login token instead of the username (?) and password (e.g. a bearer)
 // TODO: use HTTPS (useful for login)
 async fn login(
     State(model_manager): State<ModelManager>,
