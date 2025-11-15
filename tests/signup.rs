@@ -43,9 +43,15 @@ async fn signup_ok() -> anyhow::Result<()> {
             .is_success()
     );
 
-    // TODO: implement DELETE /users/{username} endpoint
-    // // clean up
-    // client.do_delete("/users/new.user")
+    // clean up
+    assert!(
+        client
+            .do_delete("/users/new.user")
+            .await
+            .unwrap()
+            .status()
+            .is_success()
+    );
 
     Ok(())
 }

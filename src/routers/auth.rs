@@ -3,10 +3,7 @@ use crate::{
     controllers::UserController,
     errors::ServerError,
     extractors::AuthToken,
-    models::{
-        LoginPayload, ModelManager, SignupPayload, UpdatePasswordPayload, UserForInsertUser,
-        UserForLogin,
-    },
+    models::{LoginPayload, ModelManager, SignupPayload, UserForInsertUser, UserForLogin},
     secrets::SecretManager,
 };
 use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
@@ -18,8 +15,6 @@ pub fn get_router() -> Router<ModelManager> {
     Router::new()
         .route("/login", post(login))
         .route("/signup", post(signup))
-        // TODO: check if using a hyphen is a good practice in RESTful APIs
-        .route("/update-password", post(update_password))
 }
 
 // TODO: allow the client to optionally pass a login token instead of the username (?) and password.
@@ -94,26 +89,6 @@ async fn signup(
     });
 
     Ok((StatusCode::CREATED, Json(response)))
-}
-
-async fn update_password(
-    State(model_manager): State<ModelManager>,
-    Json(update_password_payload): Json<UpdatePasswordPayload>,
-) -> Result<Json<&'static str>, ServerError> {
-    if update_password_payload.new_password != update_password_payload.confirm_new_password {
-        return Err(ServerError::PasswordAndConfirmPasswordAreDifferent);
-    }
-
-    // TODO: validate the password (length, at least one special char, at least one number, etc.)
-
-    UserController::update_password_by_username(
-        &model_manager,
-        &update_password_payload.username,
-        &update_password_payload.new_password,
-    )
-    .await?;
-
-    Ok(Json("success"))
 }
 
 // TODO: implement /logout

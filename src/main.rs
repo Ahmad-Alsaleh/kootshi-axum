@@ -42,6 +42,7 @@ fn get_app_router(model_manager: ModelManager) -> Router {
     Router::new()
         .merge(routers::companies::get_router())
         .nest("/auth", routers::auth::get_router())
+        .nest("/users", routers::users::get_router())
         .with_state(model_manager)
         .merge(routers::basic::get_router())
         .layer(middleware::map_response(middlewares::map_response))

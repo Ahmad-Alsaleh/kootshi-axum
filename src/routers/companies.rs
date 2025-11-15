@@ -56,7 +56,7 @@ async fn get_company(
 async fn delete_company(
     State(model_manager): State<ModelManager>,
     Path(company_name): Path<String>,
-) -> Result<impl IntoResponse, ServerError> {
+) -> Result<StatusCode, ServerError> {
     CompanyController::delete_by_name(&model_manager, &company_name).await?;
     Ok(StatusCode::NO_CONTENT)
 }
