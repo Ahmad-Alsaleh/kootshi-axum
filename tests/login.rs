@@ -68,7 +68,7 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(status, 401);
+    assert_eq!(status, 400);
 
     // check response body
     #[derive(Deserialize)]
@@ -80,8 +80,8 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
     }
     let schema = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
-    assert_eq!(schema.message, "invalid_username_or_password");
-    assert_eq!(schema.status, 401);
+    assert_eq!(schema.message, "invalid_username");
+    assert_eq!(schema.status, 400);
 
     // check headers
     assert!(response.header("set-cookie").is_none());
