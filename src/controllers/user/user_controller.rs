@@ -26,6 +26,7 @@ impl UserController {
             .ok_or(UserControllerError::UserNotFound)
     }
 
+    // TODO: return user id
     pub async fn update_password_by_username(
         model_manager: &ModelManager,
         username: &str,
@@ -86,6 +87,19 @@ impl UserController {
             Err(err) => Err(UserControllerError::Sqlx(err)),
         }
     }
+
+    // TODO: implement tests
+    pub async fn delete_by_username(
+        model_manager: &ModelManager,
+        username: &str,
+    ) -> Result<Uuid, UserControllerError> {
+        sqlx::query_scalar("DELETE FROM users WHERE username = $1 RETURNING id")
+            .bind(username)
+            .fetch_optional(model_manager.db())
+            .await
+            .map_err(UserControllerError::Sqlx)?
+            .ok_or(UserControllerError::UserNotFound)
+    }
 }
 
 #[cfg(test)]
@@ -98,6 +112,7 @@ mod tests {
         secrets::SecretManager,
     };
     use anyhow::Context;
+    use uuid::Uuid;
 
     #[tokio::test]
     async fn test_get_by_username_ok() -> anyhow::Result<()> {
@@ -258,6 +273,63 @@ mod tests {
             result,
             Err(UserControllerError::UsernameAlreadyExists)
         ));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_delete_by_username_ok() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let inserted_user_id: Uuid = sqlx::query_scalar(
+            "
+            INSERT INTO
+                users (username, password_hash, password_salt)
+            VALUES
+                ('temp.user', '\\x00', '\\x11')
+            RETURNING id
+            ",
+        )
+        .fetch_one(model_manager.db())
+        .await
+        .context("failed while inserting user")?;
+
+        // exec
+        let deleted_user_id = UserController::delete_by_username(&model_manager, "temp.user")
+            .await
+            .context("failed while deleting user")?;
+
+        // check
+        assert_eq!(inserted_user_id, deleted_user_id);
+
+        let result = sqlx::query("SELECT * FROM users WHERE id = $1 OR username = $2")
+            .bind(inserted_user_id)
+            .bind("temp.user")
+            .fetch_optional(model_manager.db())
+            .await
+            .context("failed while fetching user")?;
+        assert!(result.is_none());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_delete_by_username_err_user_not_found() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let result = UserController::delete_by_username(&model_manager, "invalid.user").await;
+
+        // check
+        assert!(matches!(result, Err(UserControllerError::UserNotFound)));
+
+        let result = sqlx::query("SELECT * FROM users WHERE username = $1")
+            .bind("invalid.user")
+            .fetch_optional(model_manager.db())
+            .await
+            .context("failed while fetching user")?;
+        assert!(result.is_none());
 
         Ok(())
     }

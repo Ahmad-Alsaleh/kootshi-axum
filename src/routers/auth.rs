@@ -115,3 +115,5 @@ async fn update_password(
 
     Ok(Json("success"))
 }
+
+// TODO: implement /logout
