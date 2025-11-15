@@ -1,4 +1,4 @@
-use std::{sync::OnceLock, time::Duration};
+use std::{str::FromStr, sync::OnceLock, time::Duration};
 
 pub fn config() -> &'static Config {
     static CONFIG: OnceLock<Config> = OnceLock::new();
@@ -18,11 +18,9 @@ impl Config {
         Self {
             db_uri: read_env_var("DB_URI"),
             server_address: read_env_var("SERVER_ADDRESS"),
-            auth_token_exp_duration: Duration::from_secs(
-                read_env_var("AUTH_TOKEN_EXP_DURATION_SEC")
-                    .parse()
-                    .expect("failed to parse AUTH_TOKEN_EXP_DURATION_SECONDS as an int"),
-            ),
+            auth_token_exp_duration: Duration::from_secs(read_env_var_parsed(
+                "AUTH_TOKEN_EXP_DURATION_SEC",
+            )),
             // TODO: consider using base64_url::decode instead of into_bytes
             auth_token_key: read_env_var("AUTH_TOKEN_KEY").into_bytes(),
             // TODO: consider using base64_url::decode instead of into_bytes
@@ -34,4 +32,10 @@ impl Config {
 fn read_env_var(env_var_name: &str) -> String {
     std::env::var(env_var_name)
         .unwrap_or_else(|err| panic!("failed to read env var `{env_var_name}`: {err}"))
+}
+
+fn read_env_var_parsed<T: FromStr>(env_var_name: &str) -> T {
+    read_env_var(env_var_name)
+        .parse()
+        .unwrap_or_else(|_| panic!("failed to parse {env_var_name}"))
 }
