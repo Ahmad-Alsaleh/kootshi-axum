@@ -26,12 +26,11 @@ impl UserController {
             .ok_or(UserControllerError::UserNotFound)
     }
 
-    // TODO: return user id
     pub async fn update_password_by_username(
         model_manager: &ModelManager,
         username: &str,
         new_password: &str,
-    ) -> Result<(), UserControllerError> {
+    ) -> Result<Uuid, UserControllerError> {
         let user =
             UserController::get_by_username::<UserForUpdatePassword>(model_manager, username)
                 .await?;
@@ -39,20 +38,13 @@ impl UserController {
         let password_hash =
             SecretManager::hash_secret(new_password, &user.password_salt, &config().password_key);
 
-        let n_rows_affected =
-            sqlx::query("UPDATE users SET password_hash = $1 WHERE username = $2")
-                .bind(password_hash)
-                .bind(username)
-                .execute(model_manager.db())
-                .await
-                .map_err(UserControllerError::Sqlx)?
-                .rows_affected();
-
-        if n_rows_affected == 0 {
-            return Err(UserControllerError::UserNotFound);
-        }
-
-        Ok(())
+        sqlx::query_scalar("UPDATE users SET password_hash = $1 WHERE username = $2 RETURNING id")
+            .bind(password_hash)
+            .bind(username)
+            .fetch_optional(model_manager.db())
+            .await
+            .map_err(UserControllerError::Sqlx)?
+            .ok_or(UserControllerError::UserNotFound)
     }
 
     pub async fn insert_user(
@@ -156,7 +148,7 @@ mod tests {
         .context("failed while fetching user")?;
 
         // exec
-        UserController::update_password_by_username(
+        let id = UserController::update_password_by_username(
             &model_manager,
             "ahmad.alsaleh",
             "new password",
@@ -165,11 +157,13 @@ mod tests {
         .context("failed while updating password")?;
 
         // check
-        let new_password_hash: Vec<u8> =
-            sqlx::query_scalar("SELECT password_hash FROM users WHERE username = 'ahmad.alsaleh'")
+        let (expected_id, new_password_hash): (Uuid, Vec<u8>) =
+            sqlx::query_as("SELECT id, password_hash FROM users WHERE username = 'ahmad.alsaleh'")
                 .fetch_one(model_manager.db())
                 .await
                 .context("failed while fetching user")?;
+
+        assert_eq!(id, expected_id);
 
         SecretManager::verify_secret(
             "new password",
