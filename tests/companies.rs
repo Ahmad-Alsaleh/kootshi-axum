@@ -1,17 +1,13 @@
+mod utils;
+
 use anyhow::Context;
 use serde::Deserialize;
 use serde_json::json;
 use std::collections::HashSet;
+use utils::login;
 use uuid::Uuid;
 
 const DEV_BASE_URL: &str = "http://localhost:1948";
-
-macro_rules! login {
-    ($client:expr) => {
-        let login_body = json!({"username":"ahmad.alsaleh", "password": "passme"});
-        $client.do_post("/auth/login", login_body).await.unwrap();
-    };
-}
 
 // GET /companies 200
 #[tokio::test]

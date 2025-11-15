@@ -1,4 +1,7 @@
+mod utils;
+
 use axum::http::StatusCode;
+use utils::login;
 
 const DEV_BASE_URL: &str = "http://localhost:1948";
 
@@ -34,6 +37,8 @@ async fn ping() {
 async fn fallback() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
     let response = client.do_get("/does-not-exist").await.unwrap();
+
+    login!(client);
 
     let status = response.status();
     let content_type = response.header("Content-Type").unwrap();
