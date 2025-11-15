@@ -98,7 +98,7 @@ async fn create_company_err_name_exists() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(response.status(), 400);
+    assert_eq!(response.status(), 409);
 
     // check resposne body
     #[derive(Deserialize)]
@@ -111,7 +111,7 @@ async fn create_company_err_name_exists() -> anyhow::Result<()> {
     let schema = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "company_name_already_exists");
-    assert_eq!(schema.status, 400);
+    assert_eq!(schema.status, 409);
 
     Ok(())
 }

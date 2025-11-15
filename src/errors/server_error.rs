@@ -67,10 +67,9 @@ impl IntoResponse for ServerError {
             }
             Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::PasswordAndConfirmPasswordAreDifferent
-            | Self::UsernameAlreadyExists
             | Self::UsernameNotFound
-            | Self::CompanyNameAlreadyExists
             | Self::CompanyNotFound => StatusCode::BAD_REQUEST,
+            Self::UsernameAlreadyExists | Self::CompanyNameAlreadyExists => StatusCode::CONFLICT,
         };
         let mut response = status_code.into_response();
         response.extensions_mut().insert(self);

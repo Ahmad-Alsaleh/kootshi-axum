@@ -110,7 +110,7 @@ async fn signup_err_username_already_exists() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(status, 400);
+    assert_eq!(status, 409);
 
     // check response body
     #[derive(Deserialize)]
@@ -123,7 +123,7 @@ async fn signup_err_username_already_exists() -> anyhow::Result<()> {
     let schema = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "username_already_exists");
-    assert_eq!(schema.status, 400);
+    assert_eq!(schema.status, 409);
 
     Ok(())
 }
