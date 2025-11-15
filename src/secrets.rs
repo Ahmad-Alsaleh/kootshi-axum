@@ -7,6 +7,7 @@ pub struct SecretManager;
 
 #[derive(Debug)]
 pub struct SecretDoesNotMatchTarget;
+
 error_impl!(SecretDoesNotMatchTarget);
 
 // TODO: use argon2 instad of HMAC + SHA256
