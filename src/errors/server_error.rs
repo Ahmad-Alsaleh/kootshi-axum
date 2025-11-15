@@ -62,13 +62,13 @@ impl From<SecretDoesNotMatchTarget> for ServerError {
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         let status_code = match self {
-            Self::UsernameNotFound // TODO: maybe `UsernameNotFound ` should be `BAD_REQUEST`
-            | Self::WrongPassword
-            | Self::AuthTokenErr(_)
-            | Self::AuthTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
+            Self::WrongPassword | Self::AuthTokenErr(_) | Self::AuthTokenNotFoundInCookies => {
+                StatusCode::UNAUTHORIZED
+            }
             Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::PasswordAndConfirmPasswordAreDifferent
             | Self::UsernameAlreadyExists
+            | Self::UsernameNotFound
             | Self::CompanyNameAlreadyExists
             | Self::CompanyNotFound => StatusCode::BAD_REQUEST,
         };

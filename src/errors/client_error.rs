@@ -5,6 +5,7 @@ use serde::Serialize;
 #[serde(rename_all = "snake_case")]
 pub enum ClientError {
     InvalidUsernameOrPassword,
+    InvalidUsername,
     LoginNeeded,
     FailedWhileRetrievingData,
     UsernameAlreadyExists,
@@ -18,9 +19,8 @@ error_impl!(ClientError);
 impl From<&ServerError> for ClientError {
     fn from(server_error: &ServerError) -> Self {
         match server_error {
-            ServerError::UsernameNotFound | ServerError::WrongPassword => {
-                Self::InvalidUsernameOrPassword
-            }
+            ServerError::WrongPassword => Self::InvalidUsernameOrPassword,
+            ServerError::UsernameNotFound => Self::InvalidUsername,
             ServerError::AuthTokenErr(_) | ServerError::AuthTokenNotFoundInCookies => {
                 Self::LoginNeeded
             }
