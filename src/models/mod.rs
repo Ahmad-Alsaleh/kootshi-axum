@@ -21,7 +21,7 @@ pub struct ModelManager(PgPool);
 
 impl ModelManager {
     pub async fn new() -> Self {
-        let pool = PgPool::connect(&config().db_uri)
+        let pool = PgPool::connect(&config().database_url)
             .await
             .expect("failed to connect to DB");
         Self(pool)

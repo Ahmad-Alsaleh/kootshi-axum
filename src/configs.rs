@@ -6,7 +6,7 @@ pub fn config() -> &'static Config {
 }
 
 pub struct Config {
-    pub db_uri: String,
+    pub database_url: String,
     pub server_address: String,
     pub auth_token_exp_duration: Duration,
     pub auth_token_key: Vec<u8>,
@@ -16,7 +16,7 @@ pub struct Config {
 impl Config {
     fn load() -> Self {
         Self {
-            db_uri: read_env_var("DB_URI"),
+            database_url: read_env_var("DATABASE_URL"),
             server_address: read_env_var("SERVER_ADDRESS"),
             auth_token_exp_duration: Duration::from_secs(read_env_var_parsed(
                 "AUTH_TOKEN_EXP_DURATION_SEC",

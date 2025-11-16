@@ -1,7 +1,7 @@
 # NOTE: the following configs are for dev only, when the app is ran using cargo.
 # In prod, these configs should be managed by a container, e.g., Kubernetes (using ConfigMaps, or the like)
 [env]
-DB_URI = "postgresql://postgres:dev_password@localhost:1934/postgres"
+DATABASE_URL = "postgresql://postgres:dev_password@localhost:1934/postgres"
 SERVER_ADDRESS = "localhost:1948"
 AUTH_TOKEN_EXP_DURATION_SEC = "900"
 AUTH_TOKEN_KEY = "my-super-secure-auth-token-key"
