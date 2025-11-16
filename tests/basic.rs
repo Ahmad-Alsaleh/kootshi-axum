@@ -3,12 +3,12 @@ mod utils;
 use axum::http::StatusCode;
 use utils::login;
 
-const DEV_BASE_URL: &str = "http://localhost:1948";
+const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 
 #[tokio::test]
 async fn index() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-    let response = client.do_get("/").await.unwrap();
+    let response = client.do_get("").await.unwrap();
 
     let status = response.status();
     let content_type = response.header("Content-Type").unwrap();

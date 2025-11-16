@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use utils::login;
 use uuid::Uuid;
 
-const DEV_BASE_URL: &str = "http://localhost:1948";
+const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 
 // GET /companies 200
 #[tokio::test]

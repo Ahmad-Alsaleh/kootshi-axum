@@ -8,7 +8,7 @@ use uuid::Uuid;
 // in a command and capturing stdout. but ig it is better to put these tests in
 // tests/server-logs.rs
 
-const DEV_BASE_URL: &str = "http://localhost:1948";
+const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 
 // TODO: for the login endponit, test client cookies, etc. test cookies if we login then make another api call
 // an easy and (imo) good way is to make a /protected-ping endpoint (follow restful naming conventions) for tests only that will return `pong!`

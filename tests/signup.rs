@@ -3,7 +3,7 @@ use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
-const DEV_BASE_URL: &str = "http://localhost:1948";
+const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 
 #[tokio::test]
 async fn signup_ok() -> anyhow::Result<()> {

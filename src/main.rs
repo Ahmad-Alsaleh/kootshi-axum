@@ -22,7 +22,7 @@ async fn main() {
     let model_manager = ModelManager::new().await;
     model_manager.init().await;
 
-    let app = get_app_router(model_manager);
+    let app = Router::new().nest("/api/v1", get_app_router(model_manager));
     let listener = TcpListener::bind(&config().server_address)
         .await
         .expect("failed to bind TCP listener");
