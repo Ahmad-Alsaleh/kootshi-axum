@@ -1,9 +1,11 @@
 -- companies
+DELETE FROM companies;
 INSERT INTO companies (name) VALUES ('Al Forsan');
 INSERT INTO companies (name) VALUES ('Al Joker');
 INSERT INTO companies (name) VALUES ('Al Abtal');
 
 -- users
+DELETE FROM users;
 INSERT INTO users (username, first_name, last_name, password_hash, password_salt) VALUES (
   'ahmad.alsaleh',
   'Ahmad',

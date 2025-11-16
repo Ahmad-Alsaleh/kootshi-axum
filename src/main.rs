@@ -20,7 +20,15 @@ mod secrets;
 #[tokio::main]
 async fn main() {
     let model_manager = ModelManager::new().await;
-    model_manager.init().await;
+
+    // TODO: modify build-script
+    sqlx::migrate!()
+        .run(model_manager.db())
+        .await
+        .expect("failed to apply migrations");
+
+    #[cfg(debug_assertions)]
+    model_manager.seed_fake_data().await;
 
     let app = Router::new().nest("/api/v1", get_app_router(model_manager));
     let listener = TcpListener::bind(&config().server_address)

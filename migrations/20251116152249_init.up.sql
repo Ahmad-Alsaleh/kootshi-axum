@@ -1,3 +1,5 @@
+-- Add up migration script here
+
 CREATE TABLE IF NOT EXISTS companies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(128) NOT NULL UNIQUE
