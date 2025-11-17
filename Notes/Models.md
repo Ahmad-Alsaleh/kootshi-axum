@@ -9,6 +9,7 @@
     - role: UserRole (not null)
     - phone_number: PhoneNumber
     - is_email_verified: Bool (nut null, default false)
+    - avatar_url: Url
     - created_at: TimestampTz (not null, default now())
     - updated_at: TimestampTz (not null, default now())
     - deleted_at: TimestampTz (default null)
@@ -17,7 +18,6 @@
     - user_id: Uuid (PK, references User.id, on delete cascade, check User.role = 'Player' where User.id = PlayerProfile.user_id)
     - first_name: String (not null)
     - last_name: String (not null)
-    - avatar_url: Url
     - skill_level: Int (check between 1 and 10)
     - prefered_sports: Sport\[\]
     - created_at: TimestampTz (not null, default now())
