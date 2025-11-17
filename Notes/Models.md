@@ -14,17 +14,17 @@
     - deleted_at: TimestampTz (default null)
 
 - PlayerProfile
-    - user_id: Uuid (PK, references User.id, on delete cascade, check User.role = Player where User.id=PlayerProfile.user_id)
+    - user_id: Uuid (PK, references User.id, on delete cascade, check User.role = 'Player' where User.id = PlayerProfile.user_id)
     - first_name: String (not null)
     - last_name: String (not null)
     - avatar_url: Url
-    - skill level: Int (check between 1 and 10)
+    - skill_level: Int (check between 1 and 10)
     - prefered_sports: Sport\[\]
     - created_at: TimestampTz (not null, default now())
     - updated_at: TimestampTz (not null, default now())
 
 - BusinessProfile
-    - user_id: Uuid (PK, references User.id, on delete cascade, check User.role = Business where User.id=BusinessProfile.user_id)
+    - user_id: Uuid (PK, references User.id, on delete cascade, check User.role = 'Business' where User.id = BusinessProfile.user_id)
     - display_name: String (unique, not null)
     - is_verified: Bool (default false)
     - created_at: TimestampTz (not null, default now())
@@ -61,7 +61,7 @@
 - Booking
     - id: Uuid (PK)
     - timeslot_id: Uuid (not null, unique, references Timeslot.id)
-    - booked_by: Uuid (references PlayerProfile.user_id)
+    - booked_by: Uuid (not null, references PlayerProfile.user_id)
     - created_at: TimestampTz (not null, default now())
     - canceled_at: TimestampTz (default null)
     - remaining_fees: Price
