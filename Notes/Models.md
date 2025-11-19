@@ -1,7 +1,5 @@
 # Models
 
-> Note: User.password_hash can be null in the future for OAuth-only accounts
-
 - User
     - id: Uuid (PK)
     - email: Email (unique, not null)
@@ -13,6 +11,8 @@
     - created_at: TimestampTz (not null, default now())
     - updated_at: TimestampTz (not null, default now())
     - deleted_at: TimestampTz (default null)
+
+> Note: User.password_hash can be null in the future for OAuth-only accounts
 
 - PlayerProfile
     - user_id: Uuid (PK, references User.id, on delete cascade, check User.role = 'Player' where User.id = PlayerProfile.user_id)
@@ -66,7 +66,7 @@
     - canceled_at: TimestampTz (default null)
     - remaining_fees: Price
 
-- BookingParticipants
+- BookingParticipant
     - id: Uuid (PK)
     - booking_id: Uuid (references Booking.id, on delete cascade)
     - player_id: Uuid (references PlayerProfile.user_id)
