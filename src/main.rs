@@ -35,6 +35,7 @@ async fn main() {
         .await
         .expect("failed to bind TCP listener");
 
+    // TODO: use proper logging
     println!(
         "Litening at `{}`",
         listener
