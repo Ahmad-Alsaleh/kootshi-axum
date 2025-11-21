@@ -21,7 +21,6 @@ mod secrets;
 async fn main() {
     let model_manager = ModelManager::new().await;
 
-    // TODO: modify build-script
     sqlx::migrate!()
         .run(model_manager.db())
         .await
