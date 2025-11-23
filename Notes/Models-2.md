@@ -117,7 +117,6 @@
 - timeslot: TimestampTzRange (not null)
 - fees: Price
 - is_booked: Bool (not null, default false)
-- created_by: Uuid (not null, references BusinessProfile.user_id)
 - created_at: TimestampTz (not null, default now())
 - updated_at: TimestampTz (not null, default now())
 - deleted_at: TimestampTz (default null)
@@ -207,7 +206,6 @@
 - booking_id: Uuid (not null, references Booking.id)
 - slug: String (unique, not null)
 - amount_cents: Int (not null, check >= 0)
-- created_by: Uuid (not null, references PlayerProfile.user_id)
 - created_at: TimestampTz (not null, default now())
 - canceled_at: TimestampTz (default null)
 
