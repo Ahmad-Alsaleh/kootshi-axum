@@ -22,10 +22,12 @@
 
 ### Operations
 
+- player creates an account.
 - player views personal profile info.
 - player updates personal profile info.
 - player deletes personal profile info.
 
+- business creates an account.
 - business views personal profile info.
 - business updates personal profile info.
 - business deletes personal profile info.
