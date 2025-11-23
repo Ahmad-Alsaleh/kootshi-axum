@@ -22,24 +22,24 @@
 
 ### Operations
 
-- player creates an account.
-- player views personal profile info.
-- player updates personal profile info.
-- player deletes personal profile info.
+- player creates an account. `POST /auth/signup`
+- player views personal profile info. `GET /users/me`
+- player updates personal profile info. `PATCH /users/me`
+- player deletes personal profile info. `DELETE /users/me`
 
-- business creates an account.
-- business views personal profile info.
-- business updates personal profile info.
-- business deletes personal profile info.
+- business creates an account. `POST /auth/signup`
+- business views personal profile info. `GET /users/me`
+- business updates personal profile info. `PATCH /users/me`
+- business deletes personal profile info. `DELETE /users/me`
 
-- admin views personal profile info.
-- admin updates personal profile info.
-- admin deletes personal profile info.
+- admin views personal profile info. `GET /users/me`
+- admin updates personal profile info. `PATCH /users/me`
+- admin deletes personal profile info. `DELETE /users/me`
 
-- admin creates a user profile.
-- admin views profile info of a user.
-- admin updates profile info of a user.
-- admin deletes profile info of a user.
+- admin creates a user profile. `POST /users`
+- admin views profile info of a user. `GET /users/{user_id}`
+- admin updates profile info of a user. `PATCH /users/{user_id}`
+- admin deletes profile info of a user. `DELETE /users/{user_id}`
 
 ## PlayerProfile
 
@@ -86,17 +86,17 @@
 
 ### Operations
 
-- player views relevant pitches (based on location, prefered sports, etc.).
+- player views relevant pitches (based on location, prefered sports, etc.). `GET /pitches`
 
-- business creates a personal pitch.
-- business views personal pitches.
-- business updates a personal pitch.
-- business deletes personal pitches.
+- business creates a personal pitch.  `POST /pitches`
+- business views personal pitches. `GET /pitches`
+- business updates a personal pitch. `PATCH /pitches/{pitch_id}`
+- business deletes a personal pitch. `DELETE /pitches/{pitch_id}`
 
-- admin creates a pitch for a business.
-- admin views pitches of a business.
-- admin updates a pitch for a business.
-- admin deletes a pitch of a business.
+- admin creates a pitch for a business. `POST /pitches`
+- admin views pitches of a business. `GET /pitches`
+- admin updates a pitch for a business. `PATCH /pitches/{pitch_id}`
+- admin deletes a pitch for a business. `DELETE /pitches/{pitch_id}`
 
 ## Location
 
@@ -127,20 +127,20 @@
 
 ### Operations
 
-- player views timeslots of a pitch.
-- player views all relevant timeslots (ig can be same endpoint as above, but use filters in query params).
+- player views timeslots of a pitch. `GET /timeslots?pitch_id={pitch_id}`
+- player views all relevant timeslots. `GET /timeslots`
 
-- business creates a timeslot for a personal pitch.
-- business views all personal timeslots.
-- business views personal timeslots of a pitch (ig can be same endpoint as above, but use filters in query params).
-- business updates a personal timeslot.
-- business deletes a personal timeslot.
+- business creates a timeslot for a personal pitch. `POST /timeslots`
+- business views all personal timeslots. `GET /timeslots`
+- business views personal timeslots of a pitch. `GET /timeslots?pitch_id={pitch_id}`
+- business updates a personal timeslot. `PATCH /timeslots/{timeslot_id}`
+- business deletes a personal timeslot. `DELETE /timeslots/{timeslot_id}`
 
-- admin creates a timeslot.
-- admin views timeslots of a pitch.
-- admin views timeslots of a business (ig can be same endpoint as above, but use filters in query params).
-- admin updates a timeslot.
-- admin deletes a timeslot.
+- admin creates a timeslot. `POST /timeslots`
+- admin views timeslots of a pitch. `GET /timeslots?pitch_id={pitch_id}`
+- admin views timeslots of a business. `GET /timeslots?business={business_id}`
+- admin updates a timeslot. `PATCH /timeslots/{timeslot_id}`
+- admin deletes a timeslot. `DELETE /timeslots/{timeslot_id}`
 
 ## Booking
 
@@ -155,16 +155,16 @@
 
 ### Operations
 
-- player creates a booking.
-- player views personal bookings (i.e. booking history).
-- player deletes a booking (i.e. cancells the booking).
+- player creates a booking. `POST /bookings`
+- player views personal bookings (i.e. booking history). `GET /bookings`
+- player deletes a booking (i.e. cancells the booking). `DELETE /bookings/{booking_id}`
 
-- business views bookings of their pitches.
+- business views bookings of their pitches. `GET /bookings`
 
-- admin creates a booking.
-- admin views bookings of all companies.
-- admin views bookings of a company.
-- admin deletes a booking.
+- admin creates a booking. `POST /bookings`
+- admin views bookings of all companies. `GET /bookings`
+- admin views bookings of a company. `GET /bookings?business_id={business_id}`
+- admin deletes a booking. `DELETE /bookings/{booking_id}`
 
 ## BookingParticipant
 
@@ -179,17 +179,19 @@
 > CHECK (player_id IS NOT NULL AND guest_id IS NULL) OR (player_id IS NULL AND guest_id IS NOT NULL)
 > in the future, add a flag to the booking to allow random participants to join. in this case, anyone can view all participants of that booking
 
-- player views participants of a booking he made or is invited to (guests can see a live view using a unique link, later).
-- player updates info of participants for a booking he made.
-- player deletes a participant of a booking he made.
-- player delets himself as a participant (i.e., withdraws from the booking/match or decline the invitaion).
+### Operations
 
-- business views the number of participants for a booking of one of their pitches.
+- player views participants of a booking he made or is invited to (guests can see a live view using a unique link, later). `GET /bookings/{booking_id}/participants`
+- player updates info of participants for a booking he made. `PATCH /bookings/{booking_id}/participants`
+- player deletes a participant of a booking he made. `DELETE /bookings/{booking_id}/participants/{participant_id}`
+- player delets himself as a participant (i.e., withdraws from the booking/match or decline the invitaion). `DELETE /bookings/{booking_id}/participants/me`
 
-- admin creates participants.
-- admin views participants.
-- admin updates info of participants for a specific booking.
-- admin deletes participants from a specific booking.
+- business views the number of participants for a booking of one of their pitches. `GET /bookings/{booking_id}/participants`
+
+- admin creates participants. `POST /bookings/{booking_id}/participants`
+- admin views participants. `GET /bookings/{booking_id}/participants`
+- admin updates info of participants for a specific booking. `PATCH /bookings/{booking_id}/participants`
+- admin deletes participants from a specific booking. `DELETE /bookings/{booking_id}/participants`
 
 ## GuestProfile
 
