@@ -1,7 +1,7 @@
 # Models
 
-// TODO: give admin priveleges, i.e. what tables/models can he read from and write to (right now admins have full power, they can read and write to everything)
-// TODO: add operations done by guests (right now only players, businesses, and admins are considered)
+// TODO: (later) give admin priveleges, i.e. what tables/models can he read from and write to (right now admins have full power, they can read and write to everything)
+// TODO: (later) add operations done by guests (right now only players, businesses, and admins are considered)
 
 ## User
 
