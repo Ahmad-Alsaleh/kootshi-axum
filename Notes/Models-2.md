@@ -48,8 +48,6 @@
 - last_name: String (not null)
 - skill_level: Int (check between 1 and 10)
 - prefered_sports: Sport\[\]
-- created_at: TimestampTz (not null, default now())
-- updated_at: TimestampTz (not null, default now())
 
 ### Operations
 
@@ -62,8 +60,6 @@
 - user_id: Uuid (PK, references User.id, on delete cascade, check User.role = 'Business' where User.id = BusinessProfile.user_id)
 - display_name: String (unique, not null)
 - is_verified: Bool (default false)
-- created_at: TimestampTz (not null, default now())
-- updated_at: TimestampTz (not null, default now())
 
 ### Operations
 
