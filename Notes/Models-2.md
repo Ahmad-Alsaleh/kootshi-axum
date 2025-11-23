@@ -100,7 +100,13 @@
 
 ### Attributes
 
-- TBD
+- id: Uuid (PK)
+- address_line_1: String (not null)
+- address_line_2: String
+- city: String (not null)
+- postal_code: String
+- country: String (not null)
+- coordinates: GEOMETRY/GEOGRAPHY (not null, for spatial indexing)
 
 ## Timeslot
 
