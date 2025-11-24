@@ -10,6 +10,22 @@ use uuid::Uuid;
 pub struct UserController;
 
 impl UserController {
+    pub async fn get_by_id<U>(
+        model_manager: &ModelManager,
+        id: Uuid,
+    ) -> Result<U, UserControllerError>
+    where
+        U: UserFromRow,
+        U: for<'r> FromRow<'r, PgRow> + Unpin + Send,
+    {
+        sqlx::query_as("SELECT * FROM users WHERE id = $1")
+            .bind(id)
+            .fetch_optional(model_manager.db())
+            .await
+            .map_err(UserControllerError::Sqlx)?
+            .ok_or(UserControllerError::UserNotFound)
+    }
+
     pub async fn get_by_username<U>(
         model_manager: &ModelManager,
         username: &str,

@@ -1,3 +1,4 @@
+use serde::Serialize;
 use sqlx::FromRow;
 use uuid::Uuid;
 
@@ -15,6 +16,14 @@ pub struct User {
     pub password_salt: Vec<u8>,
 }
 
+#[derive(Serialize, FromRow)]
+pub struct UserPersonalInfo {
+    pub id: Uuid,
+    pub username: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+}
+
 #[derive(FromRow)]
 pub struct UserForLogin {
     pub id: Uuid,
@@ -27,6 +36,7 @@ pub struct UserForUpdatePassword {
     pub password_salt: Vec<u8>,
 }
 
+// TODO: rename to UserForInsert
 pub struct UserForInsertUser {
     pub username: String,
     pub password: String,
@@ -39,6 +49,7 @@ pub trait UserFromRow {}
 #[cfg(test)]
 impl UserFromRow for User {}
 
+impl UserFromRow for UserPersonalInfo {}
 impl UserFromRow for UserForLogin {}
 impl UserFromRow for UserForUpdatePassword {}
 impl UserFromRow for UserForInsertUser {}

@@ -1,19 +1,29 @@
 use crate::{
     controllers::UserController,
     errors::ServerError,
-    models::{ModelManager, UpdatePasswordPayload},
+    extractors::AuthToken,
+    models::{ModelManager, UpdatePasswordPayload, UserPersonalInfo},
 };
 use axum::{
     Json, Router,
     extract::{Path, State},
     http::StatusCode,
-    routing::{delete, patch},
+    routing::{delete, get, patch},
 };
 
 pub fn get_router() -> Router<ModelManager> {
     Router::new()
+        .route("/me", get(get_personal_info))
         .route("/password", patch(update_password))
         .route("/{username}", delete(delete_user))
+}
+
+async fn get_personal_info(
+    auth_token: AuthToken,
+    State(model_manager): State<ModelManager>,
+) -> Result<Json<UserPersonalInfo>, ServerError> {
+    let user = UserController::get_by_id(&model_manager, auth_token.user_id).await?;
+    Ok(Json(user))
 }
 
 // TODO: test this endpoint

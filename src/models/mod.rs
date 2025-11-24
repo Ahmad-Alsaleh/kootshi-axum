@@ -11,7 +11,9 @@ pub use request_log_info::RequestLogInfo;
 pub use request_payloads::{
     CreateCompanyPayload, LoginPayload, SignupPayload, UpdatePasswordPayload,
 };
-pub use user::{UserForInsertUser, UserForLogin, UserForUpdatePassword, UserFromRow};
+pub use user::{
+    UserForInsertUser, UserForLogin, UserForUpdatePassword, UserFromRow, UserPersonalInfo,
+};
 
 #[cfg(test)]
 pub use user::User;

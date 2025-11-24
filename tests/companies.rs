@@ -9,6 +9,8 @@ use uuid::Uuid;
 
 const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 
+// TODO: replace all unwraps with ?. if the unwrap is used to test something, use .context().
+
 // GET /companies 200
 #[tokio::test]
 async fn get_all_companies_ok() {
