@@ -7,12 +7,12 @@ use axum::{
     Json, Router,
     extract::{Path, State},
     http::StatusCode,
-    routing::{delete, put},
+    routing::{delete, patch},
 };
 
 pub fn get_router() -> Router<ModelManager> {
     Router::new()
-        .route("/password", put(update_password))
+        .route("/password", patch(update_password))
         .route("/{username}", delete(delete_user))
 }
 
