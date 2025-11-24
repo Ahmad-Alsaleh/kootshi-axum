@@ -88,13 +88,16 @@
 
 - player views relevant pitches (based on location, prefered sports, etc.). `GET /pitches`
 
+- guest views relevant pitches (based on location, prefered sports, etc.). `GET /pitches`
+
 - business creates a personal pitch.  `POST /pitches`
 - business views personal pitches. `GET /pitches`
 - business updates a personal pitch. `PATCH /pitches/{pitch_id}`
 - business deletes a personal pitch. `DELETE /pitches/{pitch_id}`
 
 - admin creates a pitch for a business. `POST /pitches`
-- admin views pitches of a business. `GET /pitches`
+- admin views all pitches. `GET /pitches`
+- admin views pitches of a business. `GET /pitches?business_id={business_id}`
 - admin updates a pitch for a business. `PATCH /pitches/{pitch_id}`
 - admin deletes a pitch for a business. `DELETE /pitches/{pitch_id}`
 
@@ -137,6 +140,7 @@
 - business deletes a personal timeslot. `DELETE /timeslots/{timeslot_id}`
 
 - admin creates a timeslot. `POST /timeslots`
+- admin views all timeslots `GET /timeslots`
 - admin views timeslots of a pitch. `GET /timeslots?pitch_id={pitch_id}`
 - admin views timeslots of a business. `GET /timeslots?business={business_id}`
 - admin updates a timeslot. `PATCH /timeslots/{timeslot_id}`
@@ -223,3 +227,14 @@
 - Price.
     - AmountCents: Int
     - Currency: \[Char; 3\] (ISO)
+
+# Non-functional Requirements
+
+- support pagination whenever possible.
+- support filters whenever possible (mainly for GET requests).
+- for GET requests, sort by relavance to the player by default.
+- ensure the user has access to the resource before reading/creating/modifying it.
+- prevent double-booking (atomic booking operation).
+- prevent deletion of slots that have bookings (use a DB constraint).
+    - later, we can notify the owner for confirmation. if confirmed, send an email to the players with a refund and a penaltiy/fine to the owner.
+- prevent creation and deletion of slots that are in the past.
