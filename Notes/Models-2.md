@@ -1,8 +1,5 @@
 # Models
 
-// TODO: (later) give admin priveleges, i.e. what tables/models can he read from and write to (right now admins have full power, they can read and write to everything)
-// TODO: (later) add operations done by guests (right now only players, businesses, and admins are considered)
-
 ## User
 
 ### Attributes
@@ -228,7 +225,7 @@
     - AmountCents: Int
     - Currency: \[Char; 3\] (ISO)
 
-# Non-functional Requirements
+# Extra Requirements
 
 - support pagination whenever possible.
 - support filters whenever possible (mainly for GET requests).
@@ -238,3 +235,9 @@
 - prevent deletion of slots that have bookings (use a DB constraint).
     - later, we can notify the owner for confirmation. if confirmed, send an email to the players with a refund and a penaltiy/fine to the owner.
 - prevent creation and deletion of slots that are in the past.
+
+# TODOs
+
+- give admin priveleges, i.e. what tables/models can he read from and write to (right now admins have full power, they can read and write to everything)
+- add operations done by guests (right now only players, businesses, and admins are considered)
+- right now, only full payment in advance is supported. support two splits as well. to do this, a simple state machine should be implemented (pitch available -> booked -> pending payment -> first half paid -> second half paid -> done)
