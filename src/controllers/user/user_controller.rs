@@ -1,10 +1,13 @@
 use crate::{
     configs::config,
     controllers::UserControllerError,
-    models::{ModelManager, UserForInsertUser, UserForUpdatePassword, UserFromRow},
+    models::{
+        ModelManager, UpdateUserPersonalInfoPayload, UserForInsertUser, UserForUpdatePassword,
+        UserFromRow,
+    },
     secrets::SecretManager,
 };
-use sqlx::{FromRow, postgres::PgRow};
+use sqlx::{Execute, FromRow, QueryBuilder, postgres::PgRow};
 use uuid::Uuid;
 
 pub struct UserController;
@@ -36,6 +39,52 @@ impl UserController {
     {
         sqlx::query_as("SELECT * FROM users WHERE username = $1")
             .bind(username)
+            .fetch_optional(model_manager.db())
+            .await
+            .map_err(UserControllerError::Sqlx)?
+            .ok_or(UserControllerError::UserNotFound)
+    }
+
+    pub async fn update_by_id(
+        model_manager: &ModelManager,
+        id: Uuid,
+        new_user_info: UpdateUserPersonalInfoPayload,
+    ) -> Result<Uuid, UserControllerError> {
+        let mut query_builder = QueryBuilder::new("UPDATE users SET ");
+        let mut separated_query_builder = query_builder.separated(", ");
+
+        let mut changed = false;
+        if let Some(username) = new_user_info.username {
+            separated_query_builder
+                .push("username = ")
+                .push_bind_unseparated(username);
+            changed = true;
+        }
+        if let Some(first_name) = new_user_info.first_name {
+            separated_query_builder
+                .push("first_name = ")
+                .push_bind_unseparated(first_name);
+            changed = true;
+        }
+        if let Some(last_name) = new_user_info.last_name {
+            separated_query_builder
+                .push("last_name = ")
+                .push_bind_unseparated(last_name);
+            changed = true;
+        }
+
+        if !changed {
+            return Ok(id);
+        }
+
+        query_builder
+            .push(" WHERE id = ")
+            .push_bind(id)
+            .push(" RETURNING id");
+
+        let query = query_builder.build_query_scalar();
+
+        query
             .fetch_optional(model_manager.db())
             .await
             .map_err(UserControllerError::Sqlx)?

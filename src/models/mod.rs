@@ -10,6 +10,7 @@ pub use company::Company;
 pub use request_log_info::RequestLogInfo;
 pub use request_payloads::{
     CreateCompanyPayload, LoginPayload, SignupPayload, UpdatePasswordPayload,
+    UpdateUserPersonalInfoPayload,
 };
 pub use user::{
     UserForInsertUser, UserForLogin, UserForUpdatePassword, UserFromRow, UserPersonalInfo,

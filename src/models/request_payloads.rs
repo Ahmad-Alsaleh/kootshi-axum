@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use serde_with::rust::double_option;
 
 #[derive(Deserialize)]
 pub struct LoginPayload {
@@ -26,4 +27,13 @@ pub struct UpdatePasswordPayload {
 #[derive(Deserialize)]
 pub struct CreateCompanyPayload {
     pub name: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserPersonalInfoPayload {
+    pub username: Option<String>,
+    #[serde(default, with = "double_option")]
+    pub first_name: Option<Option<String>>,
+    #[serde(default, with = "double_option")]
+    pub last_name: Option<Option<String>>,
 }
