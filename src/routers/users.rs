@@ -41,7 +41,7 @@ async fn update_personal_info(
 async fn update_password(
     State(model_manager): State<ModelManager>,
     Json(update_password_payload): Json<UpdatePasswordPayload>,
-) -> Result<Json<&'static str>, ServerError> {
+) -> Result<StatusCode, ServerError> {
     if update_password_payload.new_password != update_password_payload.confirm_new_password {
         return Err(ServerError::PasswordAndConfirmPasswordAreDifferent);
     }
@@ -55,8 +55,7 @@ async fn update_password(
     )
     .await?;
 
-    // TODO: return NO_CONTENT, see update_personal_info
-    Ok(Json("success"))
+    Ok(StatusCode::NO_CONTENT)
 }
 
 // TODO: test this endpoint
