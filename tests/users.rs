@@ -11,7 +11,7 @@ const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 
 // GET /users/me 200
 #[tokio::test]
-#[serial(user)]
+#[serial(user_table)]
 async fn get_personal_info_ok() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
@@ -50,7 +50,7 @@ async fn get_personal_info_ok() -> anyhow::Result<()> {
 
 // PATCH /users/me 204
 #[tokio::test]
-#[serial(user)] // TODO: insert a dummy user before updating to remove `serial`
+#[serial(user_table)] // TODO: insert a dummy user before updating to remove `serial`
 async fn update_personal_info_ok_single_field() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
@@ -101,7 +101,7 @@ async fn update_personal_info_ok_single_field() -> anyhow::Result<()> {
 
 // PATCH /users/me 204
 #[tokio::test]
-#[serial(user)]
+#[serial(user_table)]
 async fn update_personal_info_ok_multiple_fields_and_a_null_field() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
@@ -157,7 +157,7 @@ async fn update_personal_info_ok_multiple_fields_and_a_null_field() -> anyhow::R
 
 // PATCH /users/me 204
 #[tokio::test]
-#[serial(user)]
+#[serial(user_table)]
 async fn update_personal_info_ok_zero_fields() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
@@ -198,7 +198,7 @@ async fn update_personal_info_ok_zero_fields() -> anyhow::Result<()> {
 
 // PATCH /users/me 204
 #[tokio::test]
-#[serial(user)]
+#[serial(user_table)]
 async fn update_personal_info_ok_no_update() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 

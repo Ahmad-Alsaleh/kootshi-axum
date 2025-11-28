@@ -21,7 +21,7 @@
 
 - [x] player creates an account. `POST /auth/signup`
 - [x] player views personal profile info. `GET /users/me`
-- [ ] player updates personal profile info. `PATCH /users/me`
+- [x] player updates personal profile info. `PATCH /users/me`
 - [ ] player deletes personal profile info. `DELETE /users/me`
 
 - [ ] business creates an account. `POST /auth/signup`
