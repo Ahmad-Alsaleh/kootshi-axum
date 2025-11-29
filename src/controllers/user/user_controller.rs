@@ -7,7 +7,7 @@ use crate::{
     },
     secrets::SecretManager,
 };
-use sqlx::{Execute, FromRow, QueryBuilder, postgres::PgRow};
+use sqlx::{FromRow, QueryBuilder, postgres::PgRow};
 use uuid::Uuid;
 
 pub struct UserController;
@@ -100,11 +100,11 @@ impl UserController {
             UserController::get_by_username::<UserForUpdatePassword>(model_manager, username)
                 .await?;
 
-        let password_hash =
+        let new_password_hash =
             SecretManager::hash_secret(new_password, &user.password_salt, &config().password_key);
 
         sqlx::query_scalar("UPDATE users SET password_hash = $1 WHERE username = $2 RETURNING id")
-            .bind(password_hash)
+            .bind(new_password_hash)
             .bind(username)
             .fetch_optional(model_manager.db())
             .await

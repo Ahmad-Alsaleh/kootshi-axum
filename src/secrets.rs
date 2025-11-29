@@ -45,3 +45,28 @@ impl SecretManager {
 
 // TODO: implement tests
 // for hash_secret, hardcode the salt and use an online hash and compare with my implementation
+
+#[cfg(test)]
+mod tests {
+    use crate::{configs::config, secrets::SecretManager};
+
+    fn print_bytes_as_hex(bytes: &[u8]) {
+        print!("\\x");
+        for byte in bytes {
+            print!("{byte:02x}");
+        }
+        println!();
+    }
+
+    #[test]
+    fn hash_secret() {
+        let mut salt = [0; 32];
+        SecretManager::generate_salt(&mut salt);
+        println!("salt:");
+        print_bytes_as_hex(&salt);
+
+        let secret = SecretManager::hash_secret("admin", &salt, &config().password_key);
+        println!("secret:");
+        print_bytes_as_hex(&secret);
+    }
+}
