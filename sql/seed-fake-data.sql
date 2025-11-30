@@ -59,10 +59,10 @@ VALUES
 
 INSERT INTO timeslots (pitch_id, time_range, is_booked)
 VALUES
-  ((SELECT id FROM pitches WHERE display_name = 'football_pitch_1'), tstzrange('2025-03-30 17:00', '2025-03-30 18:00'), FALSE),
-  ((SELECT id FROM pitches WHERE display_name = 'football_pitch_1'), tstzrange('2025-03-30 18:00', '2025-03-30 19:00'), FALSE),
-  ((SELECT id FROM pitches WHERE display_name = 'football_pitch_1'), tstzrange('2025-03-20 17:00', '2025-03-20 18:00'), TRUE),
-  ((SELECT id FROM pitches WHERE display_name = 'basketball_pitch_1'), tstzrange('2025-03-20 17:00', '2025-03-20 18:00'), TRUE);
+  ((SELECT id FROM pitches WHERE display_name = 'football_pitch_1'), tstzrange('2025-03-30 17:00+04', '2025-03-30 18:00+04'), FALSE),
+  ((SELECT id FROM pitches WHERE display_name = 'football_pitch_1'), tstzrange('2025-03-30 18:00+04', '2025-03-30 19:00+04'), FALSE),
+  ((SELECT id FROM pitches WHERE display_name = 'football_pitch_1'), tstzrange('2025-03-20 17:00+04', '2025-03-20 18:00+04'), TRUE),
+  ((SELECT id FROM pitches WHERE display_name = 'basketball_pitch_1'), tstzrange('2025-03-20 17:00+04', '2025-03-20 18:00+04'), TRUE);
 
 INSERT INTO bookings (timeslot_id, booked_by)
 VALUES
