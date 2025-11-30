@@ -18,19 +18,20 @@ CREATE TABLE player_profiles (
   user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   first_name VARCHAR(128) NOT NULL,
   last_name VARCHAR(128) NOT NULL,
-  prefered_sports sport[] NOT NULL DEFAULT '{}'
+  preferred_sports sport[] NOT NULL DEFAULT '{}'
 );
 
 CREATE TABLE business_profiles (
   user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   display_name VARCHAR(128) UNIQUE NOT NULL,
-  is_verified BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE pitches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES business_profiles(user_id) ON DELETE CASCADE,
-  sport sport NOT NULL
+  display_name VARCHAR(128) NOT NULL,
+  sport sport NOT NULL,
+  UNIQUE (owner_id, display_name)
 );
 
 CREATE TABLE timeslots (

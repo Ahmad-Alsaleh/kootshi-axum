@@ -47,7 +47,7 @@
 - first_name: String (not null).
 - last_name: String (not null).
 - skill_level: Int (check between 1 and 10).
-- prefered_sports: Sport\[\] (not null, default '{}')
+- preferred_sports: Sport\[\] (not null, default '{}')
 
 ### Operations
 
@@ -73,7 +73,7 @@
 
 - id: Uuid (PK).
 - owner_id: Uuid (not null, references BusinessProfile.user_id, on delete cascade).
-- description: String.
+- display_name: String (not null).
 - sport: Sport (not null).
 - google_map_url: Url (not null).
 - is_hidden: Bool (not null, default false).
@@ -82,11 +82,13 @@
 - updated_at: TimestampTz (not null, default now()).
 - deleted_at: TimestampTz (default null).
 
+> UNIQUE (owner_id, display_name)
+
 ### Operations
 
-- [ ] player views relevant pitches (based on location, prefered sports, etc.). `GET /pitches`
+- [ ] player views relevant pitches (based on location, preferred sports, etc.). `GET /pitches`
 
-- [ ] guest views relevant pitches (based on location, prefered sports, etc.). `GET /pitches`
+- [ ] guest views relevant pitches (based on location, preferred sports, etc.). `GET /pitches`
 
 - [ ] business creates a personal pitch.  `POST /pitches`
 - [ ] business views personal pitches. `GET /pitches`
