@@ -23,7 +23,7 @@ CREATE TABLE player_profiles (
 
 CREATE TABLE business_profiles (
   user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  display_name VARCHAR(128) UNIQUE NOT NULL,
+  display_name VARCHAR(128) UNIQUE NOT NULL
 );
 
 CREATE TABLE pitches (

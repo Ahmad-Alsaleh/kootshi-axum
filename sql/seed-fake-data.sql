@@ -45,7 +45,7 @@ VALUES
   ((SELECT id FROM users WHERE username = 'player_1'), 'user_1_first', 'user_1_last', '{football}'),
   ((SELECT id FROM users WHERE username = 'player_2'), 'user_2_first', 'user_2_last', '{basketball, padel}');
 
-INSERT INTO business_profiles (user_id, display_name, is_verified)
+INSERT INTO business_profiles (user_id, display_name)
 VALUES
   ((SELECT id FROM users WHERE username = 'business_1'), 'business_1_display'),
   ((SELECT id FROM users WHERE username = 'business_2'), 'business_2_display');
