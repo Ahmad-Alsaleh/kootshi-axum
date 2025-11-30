@@ -7,6 +7,7 @@
 - id: Uuid (PK).
 - email: Email (unique, not null).
 - password_hash: String (not null).
+- password_salt: String (not null).
 - role: UserRole (not null).
 - phone_number: PhoneNumber.
 - is_email_verified: Bool (nut null, default false).
@@ -46,7 +47,7 @@
 - first_name: String (not null).
 - last_name: String (not null).
 - skill_level: Int (check between 1 and 10).
-- prefered_sports: Sport\[\].
+- prefered_sports: Sport\[\] (not null, default '{}')
 
 ### Operations
 
@@ -58,7 +59,7 @@
 
 - user_id: Uuid (PK, references User.id, on delete cascade, check User.role = 'Business' where User.id = BusinessProfile.user_id).
 - display_name: String (unique, not null).
-- is_verified: Bool (default false).
+- is_verified: Bool (not null, default false).
 
 ### Operations
 
@@ -116,14 +117,14 @@
 
 - id: Uuid (PK).
 - pitch_id: Uuid (not null, references Pitch.id, on delete cascade).
-- timeslot: TimestampTzRange (not null).
-- fees: Price.
+- time_range: TimestampTzRange (not null).
+- price: Price (not null).
 - is_booked: Bool (not null, default false).
 - created_at: TimestampTz (not null, default now()).
 - updated_at: TimestampTz (not null, default now()).
 - deleted_at: TimestampTz (default null).
 
-> EXCLUDE USING gist (pitch_id WITH =, timeslot WITH &&)
+> EXCLUDE USING gist (pitch_id WITH =, time_range WITH &&)
 
 ### Operations
 
@@ -148,7 +149,7 @@
 ### Attributes
 
 - id: Uuid (PK).
-- timeslot_id: Uuid (not null, unique, references Timeslot.id).
+- timeslot_id: Uuid (unique, not null, references Timeslot.id).
 - booked_by: Uuid (not null, references PlayerProfile.user_id).
 - created_at: TimestampTz (not null, default now()).
 - canceled_at: TimestampTz (default null).
