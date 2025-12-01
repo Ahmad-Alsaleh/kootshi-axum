@@ -12,12 +12,11 @@ pub use request_payloads::{
     CreateCompanyPayload, LoginPayload, SignupPayload, UpdatePasswordPayload,
     UpdateUserPersonalInfoPayload,
 };
-pub use user::{
-    UserForInsertUser, UserForLogin, UserForUpdatePassword, UserFromRow, UserPersonalInfo,
-};
-
 #[cfg(test)]
 pub use user::User;
+pub use user::{
+    UserForInsertUser, UserForLogin, UserForUpdatePassword, UserFromRow, UserPersonalInfo, UserRole,
+};
 
 #[derive(Clone)]
 pub struct ModelManager(PgPool);

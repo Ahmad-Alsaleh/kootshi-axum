@@ -3,7 +3,9 @@ use crate::{
     controllers::UserController,
     errors::ServerError,
     extractors::AuthToken,
-    models::{LoginPayload, ModelManager, SignupPayload, UserForInsertUser, UserForLogin},
+    models::{
+        LoginPayload, ModelManager, SignupPayload, UserForInsertUser, UserForLogin, UserRole,
+    },
     secrets::SecretManager,
 };
 use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
@@ -75,10 +77,9 @@ async fn signup(
     // ClientError::InvalidInput(message)
 
     let user = UserForInsertUser {
-        username: signup_payload.username,
-        password: signup_payload.password,
-        first_name: signup_payload.first_name,
-        last_name: signup_payload.last_name,
+        username: &signup_payload.username,
+        password: &signup_payload.password,
+        role: UserRole::Player, // TODO: fix this (don't hardcode it)
     };
 
     let id = UserController::insert_user(&model_manager, user).await?;

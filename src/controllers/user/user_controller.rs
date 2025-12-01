@@ -114,23 +114,22 @@ impl UserController {
 
     pub async fn insert_user(
         model_manager: &ModelManager,
-        user: UserForInsertUser,
+        user: UserForInsertUser<'_>,
     ) -> Result<Uuid, UserControllerError> {
         let mut password_salt = [0u8; 32];
         SecretManager::generate_salt(&mut password_salt);
         let password_hash =
-            SecretManager::hash_secret(&user.password, &password_salt, &config().password_key);
+            SecretManager::hash_secret(user.password, &password_salt, &config().password_key);
 
         let result = sqlx::query_scalar(
             "INSERT INTO users
-                (username, first_name, last_name, password_hash, password_salt)
+                (username, role, password_hash, password_salt)
             VALUES
-                ($1, $2, $3, $4, $5)
+                ($1, $2, $3, $4)
             RETURNING id",
         )
         .bind(user.username)
-        .bind(user.first_name)
-        .bind(user.last_name)
+        .bind(user.role)
         .bind(password_hash)
         .bind(password_salt)
         .fetch_one(model_manager.db())
@@ -165,23 +164,64 @@ mod tests {
     use crate::{
         configs::config,
         controllers::user::{errors::UserControllerError, user_controller::UserController},
-        models::{ModelManager, User, UserForInsertUser},
+        models::{ModelManager, User, UserForInsertUser, UserRole},
         secrets::SecretManager,
     };
     use anyhow::Context;
+    use rand::distr::{Alphanumeric, SampleString};
     use uuid::Uuid;
+
+    #[tokio::test]
+    async fn test_get_by_id_ok() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let username = "player_1";
+        let id = sqlx::query_scalar("SELECT id FROM users WHERE username = $1")
+            .bind(username)
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching id")?;
+
+        // exec
+        let user = UserController::get_by_id::<User>(&model_manager, id)
+            .await
+            .context("failed while fetching user")?;
+
+        // check
+        assert_eq!(user.id, id);
+        assert_eq!(user.username, username);
+        assert!(matches!(user.role, UserRole::Player));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_by_id_err_user_not_found() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let user = UserController::get_by_id::<User>(&model_manager, Uuid::new_v4()).await;
+
+        // check
+        assert!(matches!(user, Err(UserControllerError::UserNotFound)));
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_get_by_username_ok() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let user = UserController::get_by_username::<User>(&model_manager, "mohammed.hassan")
+        let username = "business_1";
+        let user = UserController::get_by_username::<User>(&model_manager, username)
             .await
             .context("failed while fetching user")?;
 
         // check
-        assert_eq!(user.username, "mohammed.hassan");
+        assert_eq!(user.username, username);
+        assert!(matches!(user.role, UserRole::Business));
 
         Ok(())
     }
@@ -205,25 +245,25 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // prepare
-        let (old_password_hash, password_salt): (Vec<u8>, Vec<u8>) = sqlx::query_as(
-            "SELECT password_hash, password_salt FROM users WHERE username = 'ahmad.alsaleh'",
-        )
-        .fetch_one(model_manager.db())
-        .await
-        .context("failed while fetching user")?;
+        let username = "player_2";
+        let (old_password_hash, password_salt): (Vec<u8>, Vec<u8>) =
+            sqlx::query_as("SELECT password_hash, password_salt FROM users WHERE username = $1")
+                .bind(username)
+                .fetch_one(model_manager.db())
+                .await
+                .context("failed while fetching user")?;
 
         // exec
-        let id = UserController::update_password_by_username(
-            &model_manager,
-            "ahmad.alsaleh",
-            "new password",
-        )
-        .await
-        .context("failed while updating password")?;
+        let new_password = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let id =
+            UserController::update_password_by_username(&model_manager, username, &new_password)
+                .await
+                .context("failed while updating password")?;
 
         // check
         let (expected_id, new_password_hash): (Uuid, Vec<u8>) =
-            sqlx::query_as("SELECT id, password_hash FROM users WHERE username = 'ahmad.alsaleh'")
+            sqlx::query_as("SELECT id, password_hash FROM users WHERE username = $1")
+                .bind(username)
                 .fetch_one(model_manager.db())
                 .await
                 .context("failed while fetching user")?;
@@ -231,7 +271,7 @@ mod tests {
         assert_eq!(id, expected_id);
 
         SecretManager::verify_secret(
-            "new password",
+            &new_password,
             &password_salt,
             &config().password_key,
             &new_password_hash,
@@ -239,11 +279,14 @@ mod tests {
         .context("password was not updated correctly")?;
 
         // clean
-        sqlx::query("UPDATE users SET password_hash = $1 WHERE username = 'ahmad.alsaleh'")
+        let rows_affected = sqlx::query("UPDATE users SET password_hash = $1 WHERE username = $2")
             .bind(old_password_hash)
+            .bind(username)
             .execute(model_manager.db())
             .await
-            .context("failed while updating password to original value")?;
+            .context("failed while updating password to original value")?
+            .rows_affected();
+        assert_eq!(rows_affected, 1);
 
         Ok(())
     }
@@ -253,12 +296,9 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let result = UserController::update_password_by_username(
-            &model_manager,
-            "invalid username",
-            "new password",
-        )
-        .await;
+        let result =
+            UserController::update_password_by_username(&model_manager, "invalid username", "")
+                .await;
 
         // check
         assert!(matches!(result, Err(UserControllerError::UserNotFound)));
@@ -271,11 +311,12 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // prepare
+        let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
         let user = UserForInsertUser {
-            username: String::from("new.user"),
-            password: String::from("my_password"),
-            first_name: None,
-            last_name: Some(String::from("new user last name")),
+            username: &username,
+            password: &password,
+            role: UserRole::Admin,
         };
 
         // exec
@@ -291,7 +332,7 @@ mod tests {
             .context("failed while fetching user")?;
 
         SecretManager::verify_secret(
-            "my_password",
+            &password,
             &user.password_salt,
             &config().password_key,
             &user.password_hash,
@@ -299,29 +340,30 @@ mod tests {
         .context("password is wrong")?;
 
         assert_eq!(user.id, id);
-        assert_eq!(user.username, "new.user");
-        assert_eq!(user.first_name, None);
-        assert_eq!(user.last_name.as_deref(), Some("new user last name"));
+        assert_eq!(user.username, username);
+        assert!(matches!(user.role, UserRole::Admin));
 
         // clean
-        sqlx::query("DELETE FROM users WHERE username = 'new.user'")
+        let rows_affected = sqlx::query("DELETE FROM users WHERE username = $1")
+            .bind(username)
             .execute(model_manager.db())
             .await
-            .context("failed while deleting user")?;
+            .context("failed while deleting user")?
+            .rows_affected();
+        assert_eq!(rows_affected, 1);
 
         Ok(())
     }
 
     #[tokio::test]
-    async fn test_insert_user_err_username_already_exists() -> anyhow::Result<()> {
+    async fn test_insert_user_err_user_already_exists() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // prepare
         let user = UserForInsertUser {
-            username: String::from("ahmad.alsaleh"),
-            password: String::from("my_password"),
-            first_name: None,
-            last_name: None,
+            username: "business_2",
+            password: "",
+            role: UserRole::Player,
         };
 
         // exec
@@ -341,21 +383,23 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // prepare
+        let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
         let inserted_user_id: Uuid = sqlx::query_scalar(
             "
             INSERT INTO
-                users (username, password_hash, password_salt)
+                users (username, role, password_hash, password_salt)
             VALUES
-                ('temp.user', '\\x00', '\\x11')
+                ($1, 'admin', '\\x00', '\\x11')
             RETURNING id
             ",
         )
+        .bind(&username)
         .fetch_one(model_manager.db())
         .await
         .context("failed while inserting user")?;
 
         // exec
-        let deleted_user_id = UserController::delete_by_username(&model_manager, "temp.user")
+        let deleted_user_id = UserController::delete_by_username(&model_manager, &username)
             .await
             .context("failed while deleting user")?;
 
@@ -364,7 +408,7 @@ mod tests {
 
         let result = sqlx::query("SELECT * FROM users WHERE id = $1 OR username = $2")
             .bind(inserted_user_id)
-            .bind("temp.user")
+            .bind(username)
             .fetch_optional(model_manager.db())
             .await
             .context("failed while fetching user")?;
@@ -378,13 +422,14 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let result = UserController::delete_by_username(&model_manager, "invalid.user").await;
+        let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let result = UserController::delete_by_username(&model_manager, &username).await;
 
         // check
         assert!(matches!(result, Err(UserControllerError::UserNotFound)));
 
         let result = sqlx::query("SELECT * FROM users WHERE username = $1")
-            .bind("invalid.user")
+            .bind(username)
             .fetch_optional(model_manager.db())
             .await
             .context("failed while fetching user")?;
