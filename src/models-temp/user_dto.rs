@@ -1,3 +1,5 @@
+// use crate::models::request_payloads::AcountType;
+use crate::models::tables::Sport;
 use serde::Serialize;
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -44,12 +46,27 @@ pub struct UserForUpdatePassword {
     pub password_salt: Vec<u8>,
 }
 
-// TODO: rename to UserForInsert
-pub struct UserForInsertUser<'a> {
+// -----
+
+pub struct UserForInsert<'a> {
     pub username: &'a str,
     pub password: &'a str,
-    pub role: UserRole,
+    pub account_type: &'a AcountType<'a>,
 }
+
+pub enum AcountType<'a> {
+    Player {
+        first_name: &'a str,
+        last_name: &'a str,
+        // TODO: make sure this is a set (ie items are unique)
+        preferred_sports: &'a [Sport],
+    },
+    Business {
+        display_name: &'a str,
+    },
+}
+
+// -----
 
 pub trait UserFromRow {}
 
@@ -59,4 +76,4 @@ impl UserFromRow for User {}
 impl UserFromRow for UserPersonalInfo {}
 impl UserFromRow for UserForLogin {}
 impl UserFromRow for UserForUpdatePassword {}
-impl UserFromRow for UserForInsertUser<'_> {}
+impl UserFromRow for UserForInsert<'_> {}
