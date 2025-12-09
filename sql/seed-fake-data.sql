@@ -42,8 +42,8 @@ VALUES
 
 INSERT INTO player_profiles (user_id, first_name, last_name, preferred_sports)
 VALUES
-  ((SELECT id FROM users WHERE username = 'player_1'), 'user_1_first', 'user_1_last', '{football}'),
-  ((SELECT id FROM users WHERE username = 'player_2'), 'user_2_first', 'user_2_last', '{basketball, padel}');
+  ((SELECT id FROM users WHERE username = 'player_1'), 'player_1_first', 'player_1_last', '{football}'),
+  ((SELECT id FROM users WHERE username = 'player_2'), 'player_2_first', 'player_2_last', '{basketball, padel}');
 
 INSERT INTO business_profiles (user_id, display_name)
 VALUES
