@@ -1,10 +1,12 @@
 use crate::{
     configs::config,
     controllers::UserController,
-    dtos::{UserForInsert, UserForLogin},
     errors::ServerError,
     extractors::AuthToken,
-    models::{LoginPayload, ModelManager, SignupPayload},
+    models::{
+        LoginPayload, ModelManager, SignupPayload,
+        dtos::{UserForInsert, UserForLogin},
+    },
     secrets::SecretManager,
 };
 use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};

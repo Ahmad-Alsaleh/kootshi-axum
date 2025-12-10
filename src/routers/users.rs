@@ -1,9 +1,10 @@
 use crate::{
     controllers::UserController,
-    dtos::UserPersonalInfo,
     errors::ServerError,
     extractors::AuthToken,
-    models::{ModelManager, UpdatePasswordPayload, UpdateUserPersonalInfoPayload},
+    models::{
+        ModelManager, UpdatePasswordPayload, UpdateUserPersonalInfoPayload, dtos::UserPersonalInfo,
+    },
 };
 use axum::{
     Json, Router,

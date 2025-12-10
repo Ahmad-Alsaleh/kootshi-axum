@@ -3,8 +3,11 @@
 use crate::{
     configs::config,
     controllers::UserControllerError,
-    dtos::{RawUserInfo, UserForInsert, UserForUpdatePassword, UserFromRow, UserPersonalInfo},
-    models::{ModelManager, ProfileInfo, UpdateUserPersonalInfoPayload, tables::UserRole},
+    models::{
+        ModelManager, ProfileInfo, UpdateUserPersonalInfoPayload,
+        dtos::{RawUserInfo, UserForInsert, UserForUpdatePassword, UserFromRow, UserPersonalInfo},
+        tables::UserRole,
+    },
     secrets::SecretManager,
 };
 use sqlx::{FromRow, QueryBuilder, postgres::PgRow};

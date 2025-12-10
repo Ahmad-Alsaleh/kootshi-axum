@@ -10,7 +10,6 @@ use tower_cookies::CookieManagerLayer;
 
 mod configs;
 mod controllers;
-mod dtos;
 mod errors;
 mod extractors;
 mod logging;

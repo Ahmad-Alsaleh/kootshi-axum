@@ -1,7 +1,8 @@
 use crate::configs::config;
 use sqlx::PgPool;
 
-mod request_payloads;
+pub mod dtos;
+mod request_payloads; // TODO: rename this module and (maybe) make it public
 pub mod tables;
 
 pub use request_payloads::{
