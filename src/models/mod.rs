@@ -1,19 +1,11 @@
 use crate::configs::config;
 use sqlx::PgPool;
 
-mod request_log_info;
 mod request_payloads;
-mod user;
+pub mod tables;
 
-pub use request_log_info::RequestLogInfo;
 pub use request_payloads::{
-    LoginPayload, SignupPayload, UpdatePasswordPayload,
-    UpdateUserPersonalInfoPayload,
-};
-#[cfg(test)]
-pub use user::User;
-pub use user::{
-    UserForInsertUser, UserForLogin, UserForUpdatePassword, UserFromRow, UserPersonalInfo, UserRole,
+    LoginPayload, ProfileInfo, SignupPayload, UpdatePasswordPayload, UpdateUserPersonalInfoPayload,
 };
 
 #[derive(Clone)]

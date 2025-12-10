@@ -1,7 +1,7 @@
 use crate::{
     errors::{ClientError, ServerError},
     extractors::AuthToken,
-    models::RequestLogInfo,
+    logging::RequestLogInfo,
 };
 use axum::{
     Extension, Json,
