@@ -53,7 +53,9 @@ fn get_app_router(model_manager: ModelManager) -> Router {
         .nest("/users", routers::users::get_router())
         .with_state(model_manager)
         .merge(routers::basic::get_router())
-        .layer(middleware::map_response(middlewares::map_response))
+        .layer(middleware::map_response(
+            middlewares::insert_response_body_on_error,
+        ))
         .layer(middleware::map_response(middlewares::log_response))
         .layer(middleware::map_request(middlewares::generate_request_id))
         .layer(CookieManagerLayer::new())

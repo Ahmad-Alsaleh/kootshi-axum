@@ -7,7 +7,6 @@ use axum::{
     Extension, Json,
     extract::Request,
     http::{Method, Uri},
-    middleware::Next,
     response::{IntoResponse, Response},
 };
 use serde_json::json;
@@ -19,19 +18,11 @@ pub async fn generate_request_id(mut request: Request) -> Request {
     request
 }
 
-pub async fn authenticate(
-    auth_token: Result<AuthToken, ServerError>,
-    request: Request,
-    next: Next,
-) -> Result<Response, ServerError> {
-    match auth_token {
-        Ok(_) => Ok(next.run(request).await),
-        Err(err) => Err(err),
-    }
-}
-
-pub async fn map_response(Extension(request_id): Extension<Uuid>, response: Response) -> Response {
-    // change the response body if there is a server error
+/// Changes the response body if there is a server error
+pub async fn insert_response_body_on_error(
+    Extension(request_id): Extension<Uuid>,
+    response: Response,
+) -> Response {
     if let Some(server_error) = response.extensions().get::<ServerError>() {
         let client_error = ClientError::from(server_error);
         let body = json!({
