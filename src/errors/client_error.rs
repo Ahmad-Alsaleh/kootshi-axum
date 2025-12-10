@@ -7,7 +7,7 @@ pub enum ClientError {
     InvalidUsernameOrPassword,
     InvalidUsername,
     LoginNeeded,
-    FailedWhileRetrievingData,
+    DatabaseError,
     UsernameAlreadyExists,
     PasswordAndConfirmPasswordAreDifferent,
 }
@@ -23,7 +23,7 @@ impl From<&ServerError> for ClientError {
                 Self::LoginNeeded
             }
             ServerError::DataBase(_) | ServerError::UnexpectedNullValueFetchedFromDb { .. } => {
-                Self::FailedWhileRetrievingData
+                Self::DatabaseError
             }
             ServerError::PasswordAndConfirmPasswordAreDifferent => {
                 Self::PasswordAndConfirmPasswordAreDifferent
