@@ -1,10 +1,9 @@
 use crate::{
     controllers::UserController,
+    dtos::UserPersonalInfo,
     errors::ServerError,
     extractors::AuthToken,
-    models::{
-        ModelManager, UpdatePasswordPayload, UpdateUserPersonalInfoPayload, UserPersonalInfo,
-    },
+    models::{ModelManager, UpdatePasswordPayload, UpdateUserPersonalInfoPayload},
 };
 use axum::{
     Json, Router,
@@ -24,7 +23,7 @@ async fn get_personal_info(
     auth_token: AuthToken,
     State(model_manager): State<ModelManager>,
 ) -> Result<Json<UserPersonalInfo>, ServerError> {
-    let user = UserController::get_by_id(&model_manager, auth_token.user_id).await?;
+    let user = UserController::get_personal_info_by_id(&model_manager, auth_token.user_id).await?;
     Ok(Json(user))
 }
 

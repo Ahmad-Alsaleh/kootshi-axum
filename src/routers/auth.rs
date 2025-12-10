@@ -1,11 +1,10 @@
 use crate::{
     configs::config,
     controllers::UserController,
+    dtos::{UserForInsert, UserForLogin},
     errors::ServerError,
     extractors::AuthToken,
-    models::{
-        LoginPayload, ModelManager, SignupPayload, UserForInsertUser, UserForLogin, UserRole,
-    },
+    models::{LoginPayload, ModelManager, SignupPayload},
     secrets::SecretManager,
 };
 use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
@@ -76,10 +75,10 @@ async fn signup(
     // etc. and use a ServerError::ValidationError(message) which maps to StatusCode::BAD_REQUEST and
     // ClientError::InvalidInput(message)
 
-    let user = UserForInsertUser {
+    let user = UserForInsert {
         username: &signup_payload.username,
         password: &signup_payload.password,
-        role: UserRole::Player, // TODO: fix this (don't hardcode it)
+        account_type: &signup_payload.profile_info,
     };
 
     let id = UserController::insert_user(&model_manager, user).await?;

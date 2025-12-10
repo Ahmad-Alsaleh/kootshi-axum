@@ -38,9 +38,9 @@ async fn get_personal_info_ok() -> anyhow::Result<()> {
 
     let expected_user = Schema {
         id: user.id,
-        username: String::from("ahmad.alsaleh"),
-        first_name: Some(String::from("Ahmad")),
-        last_name: Some(String::from("Alsaleh")),
+        username: String::from("player_1"),
+        first_name: Some(String::from("player_1_first")),
+        last_name: Some(String::from("player_1_last")),
     };
 
     assert_eq!(user, expected_user);

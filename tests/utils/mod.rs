@@ -1,6 +1,6 @@
 macro_rules! login {
     ($client:expr) => {{
-        let login_body = serde_json::json!({"username": "ahmad.alsaleh", "password": "passme"});
+        let login_body = serde_json::json!({"username": "player_1", "password": "user_1_password"});
         $client.do_post("/auth/login", login_body).await.unwrap();
     }};
 
