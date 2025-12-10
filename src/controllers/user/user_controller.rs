@@ -4,7 +4,8 @@ use crate::{
     configs::config,
     controllers::UserControllerError,
     models::{
-        ModelManager, ProfileInfo, UpdateUserPersonalInfoPayload,
+        ModelManager,
+        api_schemas::{ProfileInfo, UpdateUserPersonalInfoPayload},
         dtos::{RawUserInfo, UserForInsert, UserForUpdatePassword, UserFromRow, UserPersonalInfo},
         tables::UserRole,
     },

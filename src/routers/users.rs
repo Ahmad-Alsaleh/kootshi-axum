@@ -3,7 +3,9 @@ use crate::{
     errors::ServerError,
     extractors::AuthToken,
     models::{
-        ModelManager, UpdatePasswordPayload, UpdateUserPersonalInfoPayload, dtos::UserPersonalInfo,
+        ModelManager,
+        api_schemas::{UpdatePasswordPayload, UpdateUserPersonalInfoPayload},
+        dtos::UserPersonalInfo,
     },
 };
 use axum::{

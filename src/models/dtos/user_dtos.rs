@@ -1,7 +1,7 @@
 #[cfg(test)]
 use crate::models::tables::User;
 use crate::models::{
-    ProfileInfo,
+    api_schemas::ProfileInfo,
     tables::{Sport, UserRole},
 };
 use serde::Serialize;

@@ -1,13 +1,9 @@
 use crate::configs::config;
 use sqlx::PgPool;
 
+pub mod api_schemas;
 pub mod dtos;
-mod request_payloads; // TODO: rename this module and (maybe) make it public
 pub mod tables;
-
-pub use request_payloads::{
-    LoginPayload, ProfileInfo, SignupPayload, UpdatePasswordPayload, UpdateUserPersonalInfoPayload,
-};
 
 #[derive(Clone)]
 pub struct ModelManager(PgPool);

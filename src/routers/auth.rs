@@ -4,7 +4,8 @@ use crate::{
     errors::ServerError,
     extractors::AuthToken,
     models::{
-        LoginPayload, ModelManager, SignupPayload,
+        ModelManager,
+        api_schemas::{LoginPayload, SignupPayload},
         dtos::{UserForInsert, UserForLogin},
     },
     secrets::SecretManager,
