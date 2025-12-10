@@ -22,7 +22,9 @@ impl From<&ServerError> for ClientError {
             ServerError::AuthTokenErr(_) | ServerError::AuthTokenNotFoundInCookies => {
                 Self::LoginNeeded
             }
-            ServerError::DataBase(_) => Self::FailedWhileRetrievingData,
+            ServerError::DataBase(_) | ServerError::UnexpectedNullValueFetchedFromDb { .. } => {
+                Self::FailedWhileRetrievingData
+            }
             ServerError::PasswordAndConfirmPasswordAreDifferent => {
                 Self::PasswordAndConfirmPasswordAreDifferent
             }

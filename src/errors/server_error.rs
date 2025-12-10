@@ -18,6 +18,11 @@ pub enum ServerError {
     UsernameAlreadyExists,
     AuthTokenErr(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
     AuthTokenNotFoundInCookies,
+    UnexpectedNullValueFetchedFromDb {
+        table_name: &'static str,
+        column_name: &'static str,
+        explanation: &'static str,
+    },
     DataBase(String),
 }
 
@@ -28,6 +33,15 @@ impl From<UserControllerError> for ServerError {
         match user_controller_error {
             UserControllerError::UserNotFound => Self::UsernameNotFound,
             UserControllerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
+            UserControllerError::UnexpectedNullValueFetchedFromDb {
+                table_name,
+                column_name,
+                explanation,
+            } => Self::UnexpectedNullValueFetchedFromDb {
+                table_name,
+                column_name,
+                explanation,
+            },
             UserControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
         }
     }
@@ -45,18 +59,27 @@ impl From<SecretDoesNotMatchTarget> for ServerError {
     }
 }
 
-impl IntoResponse for ServerError {
-    fn into_response(self) -> Response {
-        let status_code = match self {
-            Self::WrongPassword | Self::AuthTokenErr(_) | Self::AuthTokenNotFoundInCookies => {
-                StatusCode::UNAUTHORIZED
-            }
-            Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::PasswordAndConfirmPasswordAreDifferent | Self::UsernameNotFound => {
+impl From<&ServerError> for StatusCode {
+    fn from(server_error: &ServerError) -> Self {
+        match server_error {
+            ServerError::WrongPassword
+            | ServerError::AuthTokenErr(_)
+            | ServerError::AuthTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
+            ServerError::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ServerError::PasswordAndConfirmPasswordAreDifferent | ServerError::UsernameNotFound => {
                 StatusCode::BAD_REQUEST
             }
-            Self::UsernameAlreadyExists => StatusCode::CONFLICT,
-        };
+            ServerError::UsernameAlreadyExists => StatusCode::CONFLICT,
+            ServerError::UnexpectedNullValueFetchedFromDb { .. } => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+}
+
+impl IntoResponse for ServerError {
+    fn into_response(self) -> Response {
+        let status_code = StatusCode::from(&self);
         let mut response = status_code.into_response();
         response.extensions_mut().insert(self);
         response

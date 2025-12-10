@@ -47,23 +47,38 @@ impl UserController {
         .map_err(UserControllerError::Sqlx)?
         .ok_or(UserControllerError::UserNotFound)?;
 
-        // TODO: consider replacing these expects with 500 code error
         let profile_info = match raw_user.role {
             UserRole::Player => ProfileInfo::Player {
                 first_name: raw_user
                     .first_name
-                    .expect("role is player and first_name is NOT NULL in the table definition"),
+                    .ok_or(UserControllerError::UnexpectedNullValueFetchedFromDb {
+                        table_name: "player_profiles",
+                        column_name: "first_name",
+                        explanation: "user role is 'player' and this column is not nullable in the table definition",
+                    })?,
                 last_name: raw_user
                     .last_name
-                    .expect("role is player and last_name is NOT NULL in the table definition"),
-                preferred_sports: raw_user.preferred_sports.expect(
-                    "role is player and preferred_sports is NOT NULL in the table definition",
-                ),
+                    .ok_or(UserControllerError::UnexpectedNullValueFetchedFromDb {
+                        table_name: "player_profiles",
+                        column_name: "last_name",
+                        explanation: "user role is 'player' and this column is not nullable in the table definition",
+                    })?,
+                preferred_sports: raw_user
+                    .preferred_sports
+                    .ok_or(UserControllerError::UnexpectedNullValueFetchedFromDb {
+                        table_name: "player_profiles",
+                        column_name: "preferred_sports",
+                        explanation: "user role is 'player' and this column is not nullable in the table definition",
+                    })?,
             },
             UserRole::Business => ProfileInfo::Business {
-                display_name: raw_user.display_name.expect(
-                    "role is business and display_name is NOT NULL in the table definition",
-                ),
+                display_name: raw_user
+                    .display_name
+                    .ok_or(UserControllerError::UnexpectedNullValueFetchedFromDb {
+                        table_name: "business_profiles",
+                        column_name: "display_name",
+                        explanation: "user role is 'business' and this column is not nullable in the table definition",
+                    })?,
             },
             UserRole::Admin => ProfileInfo::Admin,
         };
