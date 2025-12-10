@@ -1,7 +1,5 @@
 use crate::{
-    controllers::{CompanyControllerError, UserControllerError},
-    errors::error_impl,
-    secrets::SecretDoesNotMatchTarget,
+    controllers::UserControllerError, errors::error_impl, secrets::SecretDoesNotMatchTarget,
 };
 use axum::{
     http::StatusCode,
@@ -21,8 +19,6 @@ pub enum ServerError {
     AuthTokenErr(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
     AuthTokenNotFoundInCookies,
     DataBase(String),
-    CompanyNameAlreadyExists,
-    CompanyNotFound,
 }
 
 error_impl!(ServerError);
@@ -33,16 +29,6 @@ impl From<UserControllerError> for ServerError {
             UserControllerError::UserNotFound => Self::UsernameNotFound,
             UserControllerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
             UserControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
-        }
-    }
-}
-
-impl From<CompanyControllerError> for ServerError {
-    fn from(company_controller_error: CompanyControllerError) -> Self {
-        match company_controller_error {
-            CompanyControllerError::CompanyNameAlreadyExists => Self::CompanyNameAlreadyExists,
-            CompanyControllerError::CompanyNotFound => Self::CompanyNotFound,
-            CompanyControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
         }
     }
 }
@@ -66,10 +52,10 @@ impl IntoResponse for ServerError {
                 StatusCode::UNAUTHORIZED
             }
             Self::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::PasswordAndConfirmPasswordAreDifferent
-            | Self::UsernameNotFound
-            | Self::CompanyNotFound => StatusCode::BAD_REQUEST,
-            Self::UsernameAlreadyExists | Self::CompanyNameAlreadyExists => StatusCode::CONFLICT,
+            Self::PasswordAndConfirmPasswordAreDifferent | Self::UsernameNotFound => {
+                StatusCode::BAD_REQUEST
+            }
+            Self::UsernameAlreadyExists => StatusCode::CONFLICT,
         };
         let mut response = status_code.into_response();
         response.extensions_mut().insert(self);

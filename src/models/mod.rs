@@ -1,15 +1,13 @@
 use crate::configs::config;
 use sqlx::PgPool;
 
-mod company;
 mod request_log_info;
 mod request_payloads;
 mod user;
 
-pub use company::Company;
 pub use request_log_info::RequestLogInfo;
 pub use request_payloads::{
-    CreateCompanyPayload, LoginPayload, SignupPayload, UpdatePasswordPayload,
+    LoginPayload, SignupPayload, UpdatePasswordPayload,
     UpdateUserPersonalInfoPayload,
 };
 #[cfg(test)]

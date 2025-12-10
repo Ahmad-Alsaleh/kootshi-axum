@@ -25,11 +25,6 @@ pub struct UpdatePasswordPayload {
 }
 
 #[derive(Deserialize)]
-pub struct CreateCompanyPayload {
-    pub name: String,
-}
-
-#[derive(Deserialize)]
 pub struct UpdateUserPersonalInfoPayload {
     pub username: Option<String>,
     #[serde(default, with = "double_option")]
