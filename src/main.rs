@@ -4,6 +4,7 @@ use axum::{
     http::{Method, StatusCode, Uri},
     middleware,
     response::IntoResponse,
+    routing::get,
 };
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
@@ -49,10 +50,10 @@ async fn main() {
 
 fn get_app_router(model_manager: ModelManager) -> Router {
     Router::new()
+        .route("/ping", get(ping))
         .nest("/auth", routers::auth::get_router())
         .nest("/users", routers::users::get_router())
         .with_state(model_manager)
-        .merge(routers::basic::get_router())
         .layer(middleware::map_response(
             middlewares::insert_response_body_on_error,
         ))
@@ -60,6 +61,11 @@ fn get_app_router(model_manager: ModelManager) -> Router {
         .layer(middleware::map_request(middlewares::generate_request_id))
         .layer(CookieManagerLayer::new())
         .fallback(fallback)
+}
+
+/// used for health checks
+async fn ping() -> impl IntoResponse {
+    "pong!"
 }
 
 async fn fallback(method: Method, uri: Uri) -> impl IntoResponse {
