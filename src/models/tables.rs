@@ -15,6 +15,7 @@ pub enum UserRole {
 #[cfg_attr(test, derive(PartialEq, Debug))]
 #[derive(Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "sport", rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum Sport {
     Football,
     Padel,
