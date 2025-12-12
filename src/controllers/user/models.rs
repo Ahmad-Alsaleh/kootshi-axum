@@ -37,3 +37,10 @@ pub enum UserProfile {
     },
     Admin,
 }
+
+#[derive(FromRow)]
+pub struct UserLoginInfo {
+    pub id: Uuid,
+    pub password_hash: Vec<u8>,
+    pub password_salt: Vec<u8>,
+}

@@ -1,6 +1,8 @@
-use super::models::{RawUserPersonalInfo, UserPersonalInfo};
 use crate::{
-    controllers::{UserControllerError, user::models::UserProfile},
+    controllers::{
+        UserControllerError,
+        user::models::{RawUserPersonalInfo, UserLoginInfo, UserPersonalInfo, UserProfile},
+    },
     models::{ModelManager, tables::UserRole},
 };
 use uuid::Uuid;
@@ -92,6 +94,18 @@ impl UserController {
 
         Ok(user_info)
     }
+
+    pub async fn get_login_info_by_username(
+        model_manager: &ModelManager,
+        username: &str,
+    ) -> Result<UserLoginInfo, UserControllerError> {
+        sqlx::query_as("SELECT id, password_hash, password_salt FROM users WHERE username = $1")
+            .bind(username)
+            .fetch_optional(model_manager.db())
+            .await
+            .map_err(UserControllerError::Sqlx)?
+            .ok_or(UserControllerError::UserNotFound)
+    }
 }
 
 #[cfg(test)]
@@ -104,7 +118,8 @@ mod tests {
         models::{ModelManager, tables::Sport},
     };
     use anyhow::Context;
-    use uuid::Uuid;
+    use rand::distr::{Alphanumeric, SampleString};
+    use uuid::{Uuid, uuid};
 
     #[tokio::test]
     async fn test_get_personal_info_by_id_ok_player() -> anyhow::Result<()> {
@@ -202,6 +217,63 @@ mod tests {
 
         // check
         assert!(matches!(user, Err(UserControllerError::UserNotFound)));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_login_info_by_username_ok() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let username = "business_2";
+        let user_login_info = UserController::get_login_info_by_username(&model_manager, username)
+            .await
+            .context("failed while fetching user")?;
+
+        // check
+        assert_eq!(
+            user_login_info.id,
+            uuid!("00000000-0000-0000-0000-000000000004")
+        );
+
+        let password_hash: String = user_login_info
+            .password_hash
+            .iter()
+            .map(|value| format!("{value:02x}"))
+            .collect();
+        assert_eq!(
+            password_hash,
+            "3e25a17318adce535c262e24895c98b6725ca123bd968e50480a275a59e671bf"
+        );
+
+        let password_salt: String = user_login_info
+            .password_salt
+            .iter()
+            .map(|value| format!("{value:02x}"))
+            .collect();
+        assert_eq!(
+            password_salt,
+            "b24f91a3914b017bdc9e7ba00bc5c0ae160d03e87bc627511d828de58c6c65e9"
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_login_info_by_username_err_user_not_found() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // exec
+        let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let user_login_info =
+            UserController::get_login_info_by_username(&model_manager, &username).await;
+
+        // check
+        assert!(matches!(
+            user_login_info,
+            Err(UserControllerError::UserNotFound)
+        ));
 
         Ok(())
     }
