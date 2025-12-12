@@ -37,7 +37,7 @@ async fn login_ok() -> anyhow::Result<()> {
     let set_cookie_header = response.header("set-cookie").unwrap();
 
     // check status code
-    assert_eq!(status, 200);
+    assert_eq!(status, 200, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -68,7 +68,7 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(status, 400);
+    assert_eq!(status, 400, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -78,10 +78,10 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
         request_id: Uuid,
         status: u16,
     }
-    let schema = Schema::deserialize(response_body)
+    let schema = Schema::deserialize(&response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "invalid_username");
-    assert_eq!(schema.status, 400);
+    assert_eq!(schema.status, 400, "response body:\n{response_body:#}");
 
     // check headers
     assert!(response.header("set-cookie").is_none());
@@ -102,7 +102,11 @@ async fn login_err_wrong_password() {
     let content_type = response.header("Content-Type").unwrap();
     let response_body = response.json_body().unwrap();
 
-    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(
+        status,
+        StatusCode::UNAUTHORIZED,
+        "response body:\n{response_body:#}"
+    );
     assert!(content_type.starts_with("application/json"));
     assert_eq!(
         response_body,
