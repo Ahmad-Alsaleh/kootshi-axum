@@ -4,7 +4,7 @@ use crate::{
     extractors::AuthToken,
     models::{
         ModelManager,
-        api_schemas::{UserPersonalInfo, UserProfile},
+        api_schemas::users::{UserPersonalInfo, UserProfile},
     },
 };
 use axum::{Json, Router, extract::State, routing::get};
