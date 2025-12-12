@@ -24,6 +24,7 @@ pub struct UserPersonalInfo {
     pub profile: UserProfile,
 }
 
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub enum UserProfile {
     Player {
         first_name: String,

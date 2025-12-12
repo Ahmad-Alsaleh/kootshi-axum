@@ -95,17 +95,19 @@ impl UserController {
 }
 
 #[cfg(test)]
-#[serial_test::serial] // TODO: check if any of the tests below can be run in parallel to speed up tests
 mod tests {
     use crate::{
-        controllers::user::{errors::UserControllerError, user_controller::UserController},
-        models::{ModelManager, api_schemas::UserProfile, tables::Sport},
+        controllers::{
+            UserProfile,
+            user::{errors::UserControllerError, user_controller::UserController},
+        },
+        models::{ModelManager, tables::Sport},
     };
     use anyhow::Context;
     use uuid::Uuid;
 
     #[tokio::test]
-    async fn test_get_by_id_ok() -> anyhow::Result<()> {
+    async fn test_get_personal_info_by_id_ok_player() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // prepare
@@ -117,15 +119,15 @@ mod tests {
             .context("failed while fetching id")?;
 
         // exec
-        let user = UserController::get_personal_info_by_id(&model_manager, id)
+        let user_info = UserController::get_personal_info_by_id(&model_manager, id)
             .await
-            .context("failed while fetching user")?;
+            .context("failed while fetching user info")?;
 
         // check
-        assert_eq!(user.id, id);
-        assert_eq!(user.username, username);
+        assert_eq!(user_info.id, id);
+        assert_eq!(user_info.username, username);
         assert_eq!(
-            user.profile_info,
+            user_info.profile,
             UserProfile::Player {
                 first_name: String::from("player_1_first"),
                 last_name: String::from("player_1_last"),
@@ -137,7 +139,62 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_by_id_err_user_not_found() -> anyhow::Result<()> {
+    async fn test_get_personal_info_by_id_ok_business() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let username = "business_2";
+        let id = sqlx::query_scalar("SELECT id FROM users WHERE username = $1")
+            .bind(username)
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching id")?;
+
+        // exec
+        let user_info = UserController::get_personal_info_by_id(&model_manager, id)
+            .await
+            .context("failed while fetching user info")?;
+
+        // check
+        assert_eq!(user_info.id, id);
+        assert_eq!(user_info.username, username);
+        assert_eq!(
+            user_info.profile,
+            UserProfile::Business {
+                display_name: String::from("business_2_display")
+            }
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_personal_info_by_id_ok_admin() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let username = "admin";
+        let id = sqlx::query_scalar("SELECT id FROM users WHERE username = $1")
+            .bind(username)
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching id")?;
+
+        // exec
+        let user_info = UserController::get_personal_info_by_id(&model_manager, id)
+            .await
+            .context("failed while fetching user info")?;
+
+        // check
+        assert_eq!(user_info.id, id);
+        assert_eq!(user_info.username, username);
+        assert_eq!(user_info.profile, UserProfile::Admin);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_personal_info_by_id_err_user_not_found() -> anyhow::Result<()> {
         let model_manager = ModelManager::new().await;
 
         // exec
