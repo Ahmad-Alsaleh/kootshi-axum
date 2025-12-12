@@ -24,7 +24,7 @@ async fn get_all_companies_ok() {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(response.status(), 200);
+    assert_eq!(response.status(), 200, "response body:\n{response_body:#}");
 
     // check response body
     let companies = response_body.as_array().unwrap();
@@ -51,7 +51,7 @@ async fn create_company_ok() -> anyhow::Result<()> {
     dbg!(&response_body);
 
     // check status code
-    assert_eq!(response.status(), 201);
+    assert_eq!(response.status(), 201, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -70,7 +70,8 @@ async fn create_company_ok() -> anyhow::Result<()> {
             .await
             .unwrap()
             .status()
-            .is_success()
+            .is_success(),
+        "response body:\n{response_body:#}"
     );
 
     // clean
@@ -80,7 +81,8 @@ async fn create_company_ok() -> anyhow::Result<()> {
             .await
             .unwrap()
             .status()
-            .is_success()
+            .is_success(),
+        "response body:\n{response_body:#}"
     );
 
     Ok(())
@@ -100,7 +102,7 @@ async fn create_company_err_name_exists() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(response.status(), 409);
+    assert_eq!(response.status(), 409, "response body:\n{response_body:#}");
 
     // check resposne body
     #[derive(Deserialize)]
@@ -113,7 +115,7 @@ async fn create_company_err_name_exists() -> anyhow::Result<()> {
     let schema = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "company_name_already_exists");
-    assert_eq!(schema.status, 409);
+    assert_eq!(schema.status, 409, "response body:\n{response_body:#}");
 
     Ok(())
 }
@@ -132,14 +134,15 @@ async fn delete_company_ok() -> anyhow::Result<()> {
             .await
             .unwrap()
             .status()
-            .is_success()
+            .is_success(),
+        "response body:\n{response_body:#}"
     );
 
     // exec
     let response = client.do_delete("/companies/temp-name").await.unwrap();
 
     // check status code
-    assert_eq!(response.status(), 204);
+    assert_eq!(response.status(), 204, "response body:\n{response_body:#}");
 
     // check response body
     assert!(response.text_body().is_err());
@@ -152,7 +155,8 @@ async fn delete_company_ok() -> anyhow::Result<()> {
             .await
             .unwrap()
             .status(),
-        400
+        400,
+        "response body:\n{response_body:#}"
     );
 
     Ok(())
@@ -171,7 +175,7 @@ async fn delete_company_err_company_not_found() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(response.status(), 400);
+    assert_eq!(response.status(), 400, "response body:\n{response_body:#}");
 
     // TODO: make a macro that checks message and status
     // check response body
@@ -185,7 +189,7 @@ async fn delete_company_err_company_not_found() -> anyhow::Result<()> {
     let schema = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "company_not_found");
-    assert_eq!(schema.status, 400);
+    assert_eq!(schema.status, 400, "response body:\n{response_body:#}");
 
     Ok(())
 }
@@ -203,7 +207,7 @@ async fn get_single_company_ok() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(response.status(), 200);
+    assert_eq!(response.status(), 200, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -232,7 +236,7 @@ async fn get_single_company_err_company_not_found() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(response.status(), 400);
+    assert_eq!(response.status(), 400, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -245,7 +249,7 @@ async fn get_single_company_err_company_not_found() -> anyhow::Result<()> {
     let schema = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "company_not_found");
-    assert_eq!(schema.status, 400);
+    assert_eq!(schema.status, 400, "response body:\n{response_body:#}");
 
     Ok(())
 }
@@ -260,7 +264,7 @@ async fn no_login() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check statuc code
-    assert_eq!(response.status(), 401);
+    assert_eq!(response.status(), 401, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -273,7 +277,7 @@ async fn no_login() -> anyhow::Result<()> {
     let response = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(response.message, "login_needed");
-    assert_eq!(response.status, 401);
+    assert_eq!(response.status, 401, "response body:\n{response_body:#}");
 
     Ok(())
 }

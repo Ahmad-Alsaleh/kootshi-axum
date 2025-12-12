@@ -22,7 +22,7 @@ async fn signup_ok() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(status, 201);
+    assert_eq!(status, 201, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -40,7 +40,8 @@ async fn signup_ok() -> anyhow::Result<()> {
             .await
             .unwrap()
             .status()
-            .is_success()
+            .is_success(),
+        "response body:\n{response_body:#}"
     );
 
     // clean up
@@ -50,7 +51,8 @@ async fn signup_ok() -> anyhow::Result<()> {
             .await
             .unwrap()
             .status()
-            .is_success()
+            .is_success(),
+        "response body:\n{response_body:#}"
     );
 
     Ok(())
@@ -73,7 +75,7 @@ async fn signup_err_password_and_confirm_password_are_different() -> anyhow::Res
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(status, 400);
+    assert_eq!(status, 400, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -89,7 +91,7 @@ async fn signup_err_password_and_confirm_password_are_different() -> anyhow::Res
         schema.message,
         "password_and_confirm_password_are_different"
     );
-    assert_eq!(schema.status, 400);
+    assert_eq!(schema.status, 400, "response body:\n{response_body:#}");
 
     Ok(())
 }
@@ -110,7 +112,7 @@ async fn signup_err_username_already_exists() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(status, 409);
+    assert_eq!(status, 409, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize)]
@@ -123,7 +125,7 @@ async fn signup_err_username_already_exists() -> anyhow::Result<()> {
     let schema = Schema::deserialize(response_body)
         .context("response body does not match expected schema")?;
     assert_eq!(schema.message, "username_already_exists");
-    assert_eq!(schema.status, 409);
+    assert_eq!(schema.status, 409, "response body:\n{response_body:#}");
 
     Ok(())
 }

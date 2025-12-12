@@ -23,7 +23,7 @@ async fn get_personal_info_ok() -> anyhow::Result<()> {
     let response_body = response.json_body()?;
 
     // check status code
-    assert_eq!(response.status(), 200);
+    assert_eq!(response.status(), 200, "response body:\n{response_body:#}");
 
     // check response body
     #[derive(Deserialize, PartialEq, Debug)]
@@ -65,7 +65,7 @@ async fn update_personal_info_ok_single_field() -> anyhow::Result<()> {
     let response = client.do_patch("/users/me", payload).await?;
 
     // check status code
-    assert_eq!(response.status(), 204);
+    assert_eq!(response.status(), 204, "response body:\n{response_body:#}");
 
     // check response body
     assert!(response.json_body().is_err());
@@ -94,7 +94,7 @@ async fn update_personal_info_ok_single_field() -> anyhow::Result<()> {
         "last_name": "Alsaleh",
     });
     let response = client.do_patch("/users/me", payload).await?;
-    assert_eq!(response.status(), 204);
+    assert_eq!(response.status(), 204, "response body:\n{response_body:#}");
 
     Ok(())
 }
@@ -119,7 +119,7 @@ async fn update_personal_info_ok_multiple_fields_and_a_null_field() -> anyhow::R
     let response = client.do_patch("/users/me", payload).await?;
 
     // check status code
-    assert_eq!(response.status(), 204);
+    assert_eq!(response.status(), 204, "response body:\n{response_body:#}");
 
     // check response body
     assert!(response.json_body().is_err());
@@ -150,7 +150,7 @@ async fn update_personal_info_ok_multiple_fields_and_a_null_field() -> anyhow::R
         "last_name": "Alsaleh",
     });
     let response = client.do_patch("/users/me", payload).await?;
-    assert_eq!(response.status(), 204);
+    assert_eq!(response.status(), 204, "response body:\n{response_body:#}");
 
     Ok(())
 }
@@ -169,7 +169,7 @@ async fn update_personal_info_ok_zero_fields() -> anyhow::Result<()> {
     let response = client.do_patch("/users/me", payload).await?;
 
     // check status code
-    assert_eq!(response.status(), 204);
+    assert_eq!(response.status(), 204, "response body:\n{response_body:#}");
 
     // check response body
     assert!(response.json_body().is_err());
@@ -214,7 +214,7 @@ async fn update_personal_info_ok_no_update() -> anyhow::Result<()> {
     let response = client.do_patch("/users/me", payload).await?;
 
     // check status code
-    assert_eq!(response.status(), 204);
+    assert_eq!(response.status(), 204, "response body:\n{response_body:#}");
 
     // check response body
     assert!(response.json_body().is_err());

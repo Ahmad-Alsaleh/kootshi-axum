@@ -14,7 +14,7 @@ async fn index() {
     let content_type = response.header("Content-Type").unwrap();
     let response_body = response.text_body().unwrap();
 
-    assert_eq!(status, StatusCode::OK);
+    assert_eq!(status, StatusCode::OK, "response body:\n{response_body:#}");
     assert!(content_type.starts_with("text/html"));
     assert_eq!(response_body, "<h1>Hello <i>World!</i></h1>");
 }
@@ -28,7 +28,7 @@ async fn ping() {
     let content_type = response.header("Content-Type").unwrap();
     let response_body = response.text_body().unwrap();
 
-    assert_eq!(status, StatusCode::OK);
+    assert_eq!(status, StatusCode::OK, "response body:\n{response_body:#}");
     assert!(content_type.starts_with("text/plain"));
     assert_eq!(response_body, "pong!");
 }
