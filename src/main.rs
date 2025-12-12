@@ -51,7 +51,6 @@ async fn main() {
 fn get_app_router(model_manager: ModelManager) -> Router {
     Router::new()
         .route("/ping", get(ping))
-        .nest("/auth", routers::auth::get_router())
         .nest("/users", routers::users::get_router())
         .with_state(model_manager)
         .layer(middleware::map_response(

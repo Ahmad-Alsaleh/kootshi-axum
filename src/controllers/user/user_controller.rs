@@ -1,14 +1,7 @@
 use super::models::RawUserInfo;
 use crate::{
-    configs::config,
     controllers::UserControllerError,
-    models::{
-        ModelManager,
-        api_schemas::ProfileInfo,
-        dtos::{UserForInsert, UserLoginDetails, UserPersonalInfo},
-        tables::UserRole,
-    },
-    secrets::SecretManager,
+    models::{ModelManager, api_schemas::ProfileInfo, dtos::UserPersonalInfo, tables::UserRole},
 };
 use uuid::Uuid;
 
@@ -88,95 +81,6 @@ impl UserController {
         };
 
         Ok(user_personal_info)
-    }
-
-    pub async fn get_login_details_by_username(
-        model_manager: &ModelManager,
-        username: &str,
-    ) -> Result<UserLoginDetails, UserControllerError> {
-        sqlx::query_as("SELECT * FROM users WHERE username = $1")
-            .bind(username)
-            .fetch_optional(model_manager.db())
-            .await
-            .map_err(UserControllerError::Sqlx)?
-            .ok_or(UserControllerError::UserNotFound)
-    }
-
-    // TODO: update tests for this function
-    pub async fn insert_user(
-        model_manager: &ModelManager,
-        user: UserForInsert<'_>,
-    ) -> Result<Uuid, UserControllerError> {
-        let mut password_salt = [0u8; 32];
-        SecretManager::generate_salt(&mut password_salt);
-        let password_hash =
-            SecretManager::hash_secret(user.password, &password_salt, &config().password_key);
-
-        let result = match user.account_type {
-            ProfileInfo::Player {
-                first_name,
-                last_name,
-                preferred_sports,
-            } => {
-                sqlx::query_scalar(
-                    r#"
-                    WITH inserted_user AS (
-                        INSERT INTO users
-                            (username, password_hash, password_salt, role)
-                        VALUES
-                            ($1, $2, $3, 'player')
-                        RETURNING id
-                    )
-                    INSERT INTO player_profiles
-                        (user_id, first_name, last_name, preferred_sports)
-                    VALUES
-                        (SELECT id FROM inserted_user, $4, $5, $6)
-                    RETURNING user_id
-                    "#,
-                )
-                .bind(user.username)
-                .bind(password_hash)
-                .bind(password_salt)
-                .bind(first_name)
-                .bind(last_name)
-                .bind(preferred_sports)
-                .fetch_one(model_manager.db())
-                .await
-            }
-            ProfileInfo::Business { display_name } => {
-                sqlx::query_scalar(
-                    r#"
-                    WITH inserted_user AS (
-                        INSERT INTO users
-                            (username, password_hash, password_salt, role)
-                        VALUES
-                            ($1, $2, $3, 'business')
-                        RETURNING id
-                    )
-                    INSERT INTO business_profiles
-                        (user_id, display_name)
-                    VALUES
-                        (SELECT id FROM inserted_user, $4)
-                    RETURNING user_id
-                    "#,
-                )
-                .bind(user.username)
-                .bind(password_hash)
-                .bind(password_salt)
-                .bind(display_name)
-                .fetch_one(model_manager.db())
-                .await
-            }
-            ProfileInfo::Admin => todo!(),
-        };
-
-        match result {
-            Ok(id) => Ok(id),
-            Err(sqlx::Error::Database(err)) if err.constraint() == Some("users_username_key") => {
-                Err(UserControllerError::UsernameAlreadyExists)
-            }
-            Err(err) => Err(UserControllerError::Sqlx(err)),
-        }
     }
 }
 
