@@ -3,4 +3,5 @@ mod models;
 mod user_controller;
 
 pub use errors::UserControllerError;
+pub use models::UserProfile;
 pub use user_controller::UserController;

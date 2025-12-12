@@ -2,7 +2,6 @@ use crate::configs::config;
 use sqlx::PgPool;
 
 pub mod api_schemas;
-pub mod dtos;
 pub mod tables;
 
 #[derive(Clone)]

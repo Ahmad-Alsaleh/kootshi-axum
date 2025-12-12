@@ -3,7 +3,8 @@ use sqlx::FromRow;
 use uuid::Uuid;
 
 #[derive(FromRow)]
-pub struct RawUserInfo {
+pub struct RawUserPersonalInfo {
+    // core user profile
     pub id: Uuid,
     pub username: String,
     pub role: UserRole,
@@ -15,4 +16,23 @@ pub struct RawUserInfo {
 
     // business profile
     pub display_name: Option<String>,
+}
+
+pub struct UserPersonalInfo {
+    pub id: Uuid,
+    pub username: String,
+    pub profile: UserProfile,
+}
+
+pub enum UserProfile {
+    Player {
+        first_name: String,
+        last_name: String,
+        // TODO: make sure this is a set (ie items are unique)
+        preferred_sports: Vec<Sport>,
+    },
+    Business {
+        display_name: String,
+    },
+    Admin,
 }

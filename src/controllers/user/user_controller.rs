@@ -1,7 +1,7 @@
-use super::models::RawUserInfo;
+use super::models::{RawUserPersonalInfo, UserPersonalInfo};
 use crate::{
-    controllers::UserControllerError,
-    models::{ModelManager, api_schemas::ProfileInfo, dtos::UserPersonalInfo, tables::UserRole},
+    controllers::{UserControllerError, user::models::UserProfile},
+    models::{ModelManager, tables::UserRole},
 };
 use uuid::Uuid;
 
@@ -12,17 +12,17 @@ impl UserController {
         model_manager: &ModelManager,
         id: Uuid,
     ) -> Result<UserPersonalInfo, UserControllerError> {
-        let raw_user: RawUserInfo = sqlx::query_as(
+        let raw_user_info: RawUserPersonalInfo = sqlx::query_as(
             r#"
             SELECT
                 users.id,
                 users.username,
                 users.role,
-
+                -- player profile
                 player.first_name,
                 player.last_name,
                 player.preferred_sports,
-
+                -- business profile
                 business.display_name
             FROM users
             LEFT JOIN player_profiles player
@@ -38,49 +38,59 @@ impl UserController {
         .map_err(UserControllerError::Sqlx)?
         .ok_or(UserControllerError::UserNotFound)?;
 
-        let profile_info = match raw_user.role {
-            UserRole::Player => ProfileInfo::Player {
-                first_name: raw_user
-                    .first_name
-                    .ok_or(UserControllerError::UnexpectedNullValueFetchedFromDb {
-                        table_name: "player_profiles",
-                        column_name: "first_name",
-                        explanation: "user role is 'player' and this column is not nullable in the table definition",
-                    })?,
-                last_name: raw_user
-                    .last_name
-                    .ok_or(UserControllerError::UnexpectedNullValueFetchedFromDb {
-                        table_name: "player_profiles",
-                        column_name: "last_name",
-                        explanation: "user role is 'player' and this column is not nullable in the table definition",
-                    })?,
-                preferred_sports: raw_user
-                    .preferred_sports
-                    .ok_or(UserControllerError::UnexpectedNullValueFetchedFromDb {
-                        table_name: "player_profiles",
-                        column_name: "preferred_sports",
-                        explanation: "user role is 'player' and this column is not nullable in the table definition",
-                    })?,
-            },
-            UserRole::Business => ProfileInfo::Business {
-                display_name: raw_user
-                    .display_name
-                    .ok_or(UserControllerError::UnexpectedNullValueFetchedFromDb {
+        macro_rules! explanation {
+            ($role:literal) => {
+                stringify!(user role is $role and this column is not nullable in the table definition)
+            };
+        }
+
+        let profile = match raw_user_info.role {
+            UserRole::Player => {
+                let table_name = "player_profiles";
+                let explanation = explanation!("player");
+                UserProfile::Player {
+                    first_name: raw_user_info.first_name.ok_or(
+                        UserControllerError::UnexpectedNullValueFetchedFromDb {
+                            table_name,
+                            column_name: "first_name",
+                            explanation,
+                        },
+                    )?,
+                    last_name: raw_user_info.last_name.ok_or(
+                        UserControllerError::UnexpectedNullValueFetchedFromDb {
+                            table_name,
+                            column_name: "last_name",
+                            explanation,
+                        },
+                    )?,
+                    preferred_sports: raw_user_info.preferred_sports.ok_or(
+                        UserControllerError::UnexpectedNullValueFetchedFromDb {
+                            table_name,
+                            column_name: "preferred_sports",
+                            explanation,
+                        },
+                    )?,
+                }
+            }
+            UserRole::Business => UserProfile::Business {
+                display_name: raw_user_info.display_name.ok_or(
+                    UserControllerError::UnexpectedNullValueFetchedFromDb {
                         table_name: "business_profiles",
                         column_name: "display_name",
-                        explanation: "user role is 'business' and this column is not nullable in the table definition",
-                    })?,
+                        explanation: explanation!("business"),
+                    },
+                )?,
             },
-            UserRole::Admin => ProfileInfo::Admin,
+            UserRole::Admin => UserProfile::Admin,
         };
 
-        let user_personal_info = UserPersonalInfo {
-            id: raw_user.id,
-            username: raw_user.username,
-            profile_info,
+        let user_info = UserPersonalInfo {
+            id,
+            username: raw_user_info.username,
+            profile,
         };
 
-        Ok(user_personal_info)
+        Ok(user_info)
     }
 }
 
@@ -89,7 +99,7 @@ impl UserController {
 mod tests {
     use crate::{
         controllers::user::{errors::UserControllerError, user_controller::UserController},
-        models::{ModelManager, api_schemas::ProfileInfo, tables::Sport},
+        models::{ModelManager, api_schemas::UserProfile, tables::Sport},
     };
     use anyhow::Context;
     use uuid::Uuid;
@@ -116,7 +126,7 @@ mod tests {
         assert_eq!(user.username, username);
         assert_eq!(
             user.profile_info,
-            ProfileInfo::Player {
+            UserProfile::Player {
                 first_name: String::from("player_1_first"),
                 last_name: String::from("player_1_last"),
                 preferred_sports: vec![Sport::Football],

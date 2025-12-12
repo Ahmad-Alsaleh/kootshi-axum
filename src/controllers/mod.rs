@@ -1,3 +1,3 @@
 mod user;
 
-pub use user::{UserController, UserControllerError};
+pub use user::{UserController, UserControllerError, UserProfile};

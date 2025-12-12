@@ -1,12 +1,19 @@
 use crate::models::tables::Sport;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-// TODO: this is used for both requests and response, so maybe rename this file or place this
-// struct somewhere else (dto? ig dto is a very good idea)
+#[derive(Serialize)]
+pub struct UserPersonalInfo {
+    pub id: Uuid,
+    pub username: String,
+    #[serde(flatten)]
+    pub profile: UserProfile,
+}
+
 #[cfg_attr(test, derive(PartialEq, Debug))]
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "account_type", content = "profile", rename_all = "snake_case")]
-pub enum ProfileInfo {
+pub enum UserProfile {
     Player {
         first_name: String,
         last_name: String,
