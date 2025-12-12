@@ -1,10 +1,11 @@
+use super::models::RawUserInfo;
 use crate::{
     configs::config,
     controllers::UserControllerError,
     models::{
         ModelManager,
         api_schemas::ProfileInfo,
-        dtos::{RawUserInfo, UserForInsert, UserLoginDetails, UserPersonalInfo},
+        dtos::{UserForInsert, UserLoginDetails, UserPersonalInfo},
         tables::UserRole,
     },
     secrets::SecretManager,

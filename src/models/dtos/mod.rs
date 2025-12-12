@@ -1,3 +1,3 @@
 mod user_dtos;
 
-pub use user_dtos::{RawUserInfo, UserForInsert, UserLoginDetails, UserPersonalInfo};
+pub use user_dtos::{UserForInsert, UserLoginDetails, UserPersonalInfo};
