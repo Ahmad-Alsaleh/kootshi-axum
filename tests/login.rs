@@ -1,8 +1,8 @@
 use anyhow::Context;
 use axum::http::StatusCode;
+use rand::distr::{Alphanumeric, SampleString};
 use serde::Deserialize;
 use serde_json::json;
-use uuid::Uuid;
 
 // TODO: test the output (logs) of the server. ig a good way of doing it is by running the server
 // in a command and capturing stdout. but ig it is better to put these tests in
@@ -29,7 +29,7 @@ async fn login_ok() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // exec
-    let request_body = json!({"username": "ahmad.alsaleh", "password": "passme"});
+    let request_body = json!({"username": "player_1", "password": "user_1_password"});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
 
     let status = response.status();
@@ -61,7 +61,9 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // exec
-    let request_body = json!({"username": "invalid_username", "password": "passme"});
+    let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
+    let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
+    let request_body = json!({"username": username, "password": password});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
 
     let status = response.status();
@@ -71,17 +73,12 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
     assert_eq!(status, 400, "response body:\n{response_body:#}");
 
     // check response body
-    #[derive(Deserialize)]
-    #[allow(unused)]
-    struct Schema {
-        message: String,
-        request_id: Uuid,
-        status: u16,
-    }
-    let schema = Schema::deserialize(&response_body)
-        .context("response body does not match expected schema")?;
-    assert_eq!(schema.message, "invalid_username");
-    assert_eq!(schema.status, 400, "response body:\n{response_body:#}");
+    let expected_body = json!({
+        "message": "invalid_username",
+        "request_id": response_body.get("request_id").unwrap(),
+        "status": 400,
+    });
+    assert_eq!(response_body, expected_body);
 
     // check headers
     assert!(response.header("set-cookie").is_none());
@@ -95,25 +92,33 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
 #[tokio::test]
 async fn login_err_wrong_password() {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-    let request_body = json!({"username": "ahmad.alsaleh", "password": "wrong-password"});
+
+    // exec
+    let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
+    let request_body = json!({"username": "admin", "password": password});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
 
     let status = response.status();
     let content_type = response.header("Content-Type").unwrap();
     let response_body = response.json_body().unwrap();
 
+    // check status code
     assert_eq!(
         status,
         StatusCode::UNAUTHORIZED,
         "response body:\n{response_body:#}"
     );
-    assert!(content_type.starts_with("application/json"));
+
+    // check headers
+    assert!(content_type.to_lowercase().starts_with("application/json"));
+
+    // check response body
     assert_eq!(
         response_body,
         json!({
-            "status": StatusCode::UNAUTHORIZED.as_u16(),
             "message": "invalid_username_or_password",
             "request_id": response_body.get("request_id").unwrap(),
+            "status": 401,
         })
     );
 }
