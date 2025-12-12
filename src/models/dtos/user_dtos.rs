@@ -1,5 +1,3 @@
-#[cfg(test)]
-use crate::models::tables::User;
 use crate::models::{
     api_schemas::ProfileInfo,
     tables::{Sport, UserRole},
@@ -9,14 +7,9 @@ use sqlx::FromRow;
 use uuid::Uuid;
 
 #[derive(FromRow)]
-pub struct UserForLogin {
+pub struct UserLoginDetails {
     pub id: Uuid,
     pub password_hash: Vec<u8>,
-    pub password_salt: Vec<u8>,
-}
-
-#[derive(FromRow)]
-pub struct UserForUpdatePassword {
     pub password_salt: Vec<u8>,
 }
 
@@ -48,11 +41,3 @@ pub struct RawUserInfo {
     // business profile
     pub display_name: Option<String>,
 }
-
-pub trait UserFromRow {}
-
-#[cfg(test)]
-impl UserFromRow for User {}
-impl UserFromRow for UserForLogin {}
-impl UserFromRow for UserForUpdatePassword {}
-impl UserFromRow for UserForInsert<'_> {}

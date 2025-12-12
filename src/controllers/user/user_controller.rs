@@ -4,12 +4,11 @@ use crate::{
     models::{
         ModelManager,
         api_schemas::ProfileInfo,
-        dtos::{RawUserInfo, UserForInsert, UserFromRow, UserPersonalInfo},
+        dtos::{RawUserInfo, UserForInsert, UserLoginDetails, UserPersonalInfo},
         tables::UserRole,
     },
     secrets::SecretManager,
 };
-use sqlx::{FromRow, postgres::PgRow};
 use uuid::Uuid;
 
 pub struct UserController;
@@ -90,14 +89,10 @@ impl UserController {
         Ok(user_personal_info)
     }
 
-    pub async fn get_by_username<U>(
+    pub async fn get_login_details_by_username(
         model_manager: &ModelManager,
         username: &str,
-    ) -> Result<U, UserControllerError>
-    where
-        U: UserFromRow,
-        U: for<'r> FromRow<'r, PgRow> + Unpin + Send,
-    {
+    ) -> Result<UserLoginDetails, UserControllerError> {
         sqlx::query_as("SELECT * FROM users WHERE username = $1")
             .bind(username)
             .fetch_optional(model_manager.db())

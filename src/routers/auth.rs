@@ -6,7 +6,7 @@ use crate::{
     models::{
         ModelManager,
         api_schemas::{LoginPayload, SignupPayload},
-        dtos::{UserForInsert, UserForLogin},
+        dtos::UserForInsert,
     },
     secrets::SecretManager,
 };
@@ -29,7 +29,7 @@ async fn login(
     Json(login_payload): Json<LoginPayload>,
 ) -> Result<Json<Value>, ServerError> {
     let user =
-        UserController::get_by_username::<UserForLogin>(&model_manager, &login_payload.username)
+        UserController::get_login_details_by_username(&model_manager, &login_payload.username)
             .await?;
 
     SecretManager::verify_secret(
