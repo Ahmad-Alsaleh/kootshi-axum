@@ -1,20 +1,10 @@
 macro_rules! login {
-    ($client:expr, user = player_1) => {{
-        let login_body = serde_json::json!({"username": "player_1", "password": "user_1_password"});
+    ($client:expr, user = $user:ident) => {{
+        let login_body = serde_json::json!({"username": stringify!($user), "password": concat!(stringify!($user), "_password")});
         $client.do_post("/auth/login", login_body).await.unwrap();
     }};
 
-    ($client:expr, user = business_1) => {{
-        let login_body = serde_json::json!({"username": "business_1", "password": "business_1_password"});
-        $client.do_post("/auth/login", login_body).await.unwrap();
-    }};
-
-    ($client:expr, user = admin) => {{
-        let login_body = serde_json::json!({"username": "admin", "password": "admin"});
-        $client.do_post("/auth/login", login_body).await.unwrap();
-    }};
-
-    ($client:expr, $username:literal, $password:literal) => {{
+    ($client:expr, username = $username:literal, password = $password:literal) => {{
         let login_body = serde_json::json!({"username": $username, "password": $password});
         $client.do_post("/auth/login", login_body).await.unwrap();
     }};
