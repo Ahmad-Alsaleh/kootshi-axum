@@ -12,15 +12,15 @@ VALUES
   (
     '00000000-0000-0000-0000-000000000001',
     'player_1',
-    '\x30c790d3462f3dfbd5e32d7c308c5d354c9d0e65bd31250208cc6fe517966910', -- the password is: user_1_password
-    '\x6032a5a9886c4ef8ef9dcc7c8eb66eb5c4adce2996403bb2cb70fca3b8153a27',
+    '\xb8b1839b5f65c5dd0214aaae35f3dc5fc21ed9e15719450aec736b58fa91a7c8', -- the password is: player_1_password
+    '\xb4f340d960f6d1b450794fb1ed8154919dc37784a874ebc4e51cea7148df1398',
     'player'
   ),
   (
     '00000000-0000-0000-0000-000000000002',
     'player_2',
-    '\xdf8c35e3dd4a813c235ac06ac4141ba454873d0621eaaf408db042cd85b32d22', -- the password is: user_2_password
-    '\x009f7ee8b92448cb26db9e3a08765cf456aa030d9a71aaed55a4598ae432389f',
+    '\x50669cfbf4e50b0477d727c92b5beba1c48fa5a0ab6c30fde7a5c3b1160c995a', -- the password is: player_2_password
+    '\xa6f4fdee669cd20cb338fb29179f776e6bac19bee82bb787ece3a2cbe969c623',
     'player'
   ),
   (
@@ -40,8 +40,8 @@ VALUES
   (
     '00000000-0000-0000-0000-000000000005',
     'admin',
-    '\xe82b0a620aaf49ecd6ab946273546b41c96f401b4729bb917addc9ae0a640c7e', -- the password is: admin
-    '\x7d2bd06160c0c3a4d55209a2737ef3bd317c2d8e00d5a881b625fe967dc3c220',
+    '\xe2834fda17921347fdbe21498b030f2fbc5958509a0959281461fd5d37dfb24a', -- the password is: admin_password
+    '\xb0533e7ce156fd6e797cf41423059180012a9228ec62b8d6af94a737cf218840',
     'admin'
   );
 

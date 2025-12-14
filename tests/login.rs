@@ -29,7 +29,7 @@ async fn login_ok() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // exec
-    let request_body = json!({"username": "player_1", "password": "user_1_password"});
+    let request_body = json!({"username": "player_1", "password": "player_1_password"});
     let response = client.do_post("/auth/login", request_body).await.unwrap();
 
     let status = response.status();
