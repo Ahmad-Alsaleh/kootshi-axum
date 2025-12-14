@@ -40,8 +40,8 @@ VALUES
   (
     '00000000-0000-0000-0000-000000000005',
     'admin',
-    '\xe2834fda17921347fdbe21498b030f2fbc5958509a0959281461fd5d37dfb24a', -- the password is: admin_password
-    '\xb0533e7ce156fd6e797cf41423059180012a9228ec62b8d6af94a737cf218840',
+    '\xfbd7ffeceb2a47740f805a3a8828f702303a0579160579451e613e8ad350312f', -- the password is: admin_password
+    '\x80bb288fefccd696c713d795126d3ec585dae2ddb00648ae57df9d65737509b2',
     'admin'
   );
 
