@@ -99,12 +99,14 @@ impl UserController {
         model_manager: &ModelManager,
         username: &str,
     ) -> Result<UserLoginInfo, UserControllerError> {
-        sqlx::query_as("SELECT id, password_hash, password_salt FROM users WHERE username = $1")
-            .bind(username)
-            .fetch_optional(model_manager.db())
-            .await
-            .map_err(UserControllerError::Sqlx)?
-            .ok_or(UserControllerError::UserNotFound)
+        sqlx::query_as(
+            "SELECT id, role, password_hash, password_salt FROM users WHERE username = $1",
+        )
+        .bind(username)
+        .fetch_optional(model_manager.db())
+        .await
+        .map_err(UserControllerError::Sqlx)?
+        .ok_or(UserControllerError::UserNotFound)
     }
 }
 
@@ -115,7 +117,10 @@ mod tests {
             UserProfile,
             user::{errors::UserControllerError, user_controller::UserController},
         },
-        models::{ModelManager, tables::Sport},
+        models::{
+            ModelManager,
+            tables::{Sport, UserRole},
+        },
     };
     use anyhow::Context;
     use rand::distr::{Alphanumeric, SampleString};
@@ -236,6 +241,8 @@ mod tests {
             user_login_info.id,
             uuid!("00000000-0000-0000-0000-000000000004")
         );
+
+        assert_eq!(user_login_info.role, UserRole::Business);
 
         let password_hash: String = user_login_info
             .password_hash

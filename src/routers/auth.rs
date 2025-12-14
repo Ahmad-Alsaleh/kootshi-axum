@@ -32,7 +32,7 @@ async fn login(
         &user_login_info.password_hash,
     )?;
 
-    let auth_token = AuthToken::new(user_login_info.id);
+    let auth_token = AuthToken::new(user_login_info.id, user_login_info.role);
     let encoded_auth_token = jsonwebtoken::encode(
         &Header::new(Algorithm::HS256),
         &auth_token,

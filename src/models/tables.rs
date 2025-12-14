@@ -2,19 +2,19 @@ use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
-#[allow(unused)]
-#[derive(sqlx::Type)]
-#[sqlx(type_name = "user_role", rename_all = "lowercase")]
+#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(sqlx::Type, Serialize, Deserialize)]
+#[sqlx(type_name = "user_role", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum UserRole {
     Player,
     Business,
     Admin,
 }
 
-#[allow(unused)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 #[derive(Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "sport", rename_all = "lowercase")]
+#[sqlx(type_name = "sport", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum Sport {
     Football,

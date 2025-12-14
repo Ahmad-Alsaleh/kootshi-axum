@@ -1,4 +1,4 @@
-use crate::{configs::config, errors::ServerError};
+use crate::{configs::config, errors::ServerError, models::tables::UserRole};
 use axum::{
     RequestPartsExt,
     extract::{FromRequestParts, OptionalFromRequestParts},
@@ -13,16 +13,18 @@ use std::{
 use tower_cookies::Cookies;
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct AuthToken {
     pub user_id: Uuid,
+    pub user_role: UserRole,
     exp: u64,
 }
 
 impl AuthToken {
-    pub fn new(user_id: Uuid) -> Self {
+    pub fn new(user_id: Uuid, user_role: UserRole) -> Self {
         Self {
             user_id,
+            user_role,
             exp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("UNIX_EPOCH is in the past")

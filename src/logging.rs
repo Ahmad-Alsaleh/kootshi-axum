@@ -1,4 +1,7 @@
-use crate::errors::{ClientError, ServerError};
+use crate::{
+    errors::{ClientError, ServerError},
+    models::tables::UserRole,
+};
 use axum::http::{Method, StatusCode, Uri};
 use serde::Serialize;
 use serde_with::skip_serializing_none;
@@ -10,6 +13,7 @@ use uuid::Uuid;
 pub struct RequestLogInfo<'r> {
     request_id: Uuid,
     user_id: Option<Uuid>,
+    user_role: Option<UserRole>,
     timestamp: u128,
     path: &'r str,
     method: &'r str,
@@ -22,6 +26,7 @@ impl<'r> RequestLogInfo<'r> {
     pub fn new(
         request_id: Uuid,
         user_id: Option<Uuid>,
+        user_role: Option<UserRole>,
         uri: &'r Uri,
         method: &'r Method,
         status_code: StatusCode,
@@ -31,6 +36,7 @@ impl<'r> RequestLogInfo<'r> {
         Self {
             request_id,
             user_id,
+            user_role,
             timestamp: get_millis_since_epoch(),
             path: uri.path(),
             method: method.as_str(),

@@ -5,7 +5,6 @@ use uuid::Uuid;
 #[derive(FromRow)]
 pub struct RawUserPersonalInfo {
     // core user profile
-    pub id: Uuid,
     pub username: String,
     pub role: UserRole,
 
@@ -41,6 +40,7 @@ pub enum UserProfile {
 #[derive(FromRow)]
 pub struct UserLoginInfo {
     pub id: Uuid,
+    pub role: UserRole,
     pub password_hash: Vec<u8>,
     pub password_salt: Vec<u8>,
 }

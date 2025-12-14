@@ -50,11 +50,14 @@ pub async fn log_response(
 ) -> Response {
     let server_error = response.extensions().get::<ServerError>();
     let client_error = response.extensions().get::<ClientError>();
-    let user_id = auth_token.map(|token| token.user_id);
+    let (user_id, user_role) = auth_token
+        .map(|token| (token.user_id, token.user_role))
+        .unzip();
 
     let log_line = RequestLogInfo::new(
         request_id,
         user_id,
+        user_role,
         &uri,
         &method,
         response.status(),
