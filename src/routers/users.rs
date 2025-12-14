@@ -4,7 +4,7 @@ use crate::{
     extractors::AuthToken,
     models::{
         ModelManager,
-        api_schemas::users::{UserPersonalInfo, UserProfile},
+        api_schemas::{UserPersonalInfo, UserProfile},
     },
 };
 use axum::{Json, Router, extract::State, routing::get};
@@ -17,6 +17,8 @@ async fn get_personal_info(
     auth_token: AuthToken,
     State(model_manager): State<ModelManager>,
 ) -> Result<Json<UserPersonalInfo>, ServerError> {
+    // TODO: make this function use a different sql query based on role (from auth_token). this
+    // will remove RawUserInfo struct.
     let user_info =
         UserController::get_personal_info_by_id(&model_manager, auth_token.user_id).await?;
 

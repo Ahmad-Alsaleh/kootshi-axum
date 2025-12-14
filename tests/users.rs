@@ -95,15 +95,15 @@ async fn get_personal_info_ok_admin() -> anyhow::Result<()> {
 
 // // PATCH /users/me 204
 // #[tokio::test]
-// #[serial(user_table)] // TODO: insert a dummy user before updating to remove `serial`
+// // #[serial(user_table)] // TODO: insert a dummy user before updating to remove `serial`
 // async fn update_personal_info_ok_single_field() -> anyhow::Result<()> {
 //     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 //
 //     // prepare
-//     login!(client);
+//     login!(client, user = player_2);
 //
 //     // exec
-//     let new_last_name = Uuid::new_v4().to_string(); // any random value
+//     let new_last_name = Alphanumeric.sample_string(&mut rand::rng(), 16);
 //     let payload = json!({
 //         "last_name": new_last_name
 //     });

@@ -1,7 +1,3 @@
-mod errors;
-mod models;
-mod user_controller;
-
-pub use errors::UserControllerError;
-pub use models::UserProfile;
-pub use user_controller::UserController;
+pub mod errors;
+pub mod models;
+pub mod user_controller;

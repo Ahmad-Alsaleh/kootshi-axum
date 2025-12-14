@@ -10,4 +10,5 @@ macro_rules! login {
     }};
 }
 
+#[allow(unused)]
 pub(crate) use login;

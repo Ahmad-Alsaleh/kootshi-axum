@@ -44,3 +44,9 @@ pub struct UserLoginInfo {
     pub password_hash: Vec<u8>,
     pub password_salt: Vec<u8>,
 }
+
+pub struct UserForInsert<'a> {
+    pub username: &'a str,
+    pub password: &'a str,
+    pub profile: &'a UserProfile,
+}
