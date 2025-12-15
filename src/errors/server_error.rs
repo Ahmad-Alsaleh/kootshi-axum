@@ -24,6 +24,7 @@ pub enum ServerError {
         explanation: &'static str,
     },
     DataBase(String),
+    AdminCannotSignup,
 }
 
 error_impl!(ServerError);
@@ -66,9 +67,12 @@ impl From<&ServerError> for StatusCode {
             | ServerError::AuthTokenErr(_)
             | ServerError::AuthTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
             ServerError::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            ServerError::PasswordAndConfirmPasswordAreDifferent | ServerError::UsernameNotFound => {
-                StatusCode::BAD_REQUEST
-            }
+            // TODO: check if there is a better status code for admin can't signup (eg: forbidin,
+            // unautherized,bad request!!,not acceptatle!!,misdirected request, unprocessable
+            // entity)
+            ServerError::PasswordAndConfirmPasswordAreDifferent
+            | ServerError::UsernameNotFound
+            | ServerError::AdminCannotSignup => StatusCode::BAD_REQUEST,
             ServerError::UsernameAlreadyExists => StatusCode::CONFLICT,
             ServerError::UnexpectedNullValueFetchedFromDb { .. } => {
                 StatusCode::INTERNAL_SERVER_ERROR

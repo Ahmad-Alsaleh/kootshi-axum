@@ -90,7 +90,7 @@ async fn signup(
         UserProfile::Business { display_name } => {
             crate::controllers::UserProfile::Business { display_name }
         }
-        UserProfile::Admin => crate::controllers::UserProfile::Admin,
+        UserProfile::Admin => return Err(ServerError::AdminCannotSignup),
     };
     let user = UserForInsert {
         username: &signup_payload.username,

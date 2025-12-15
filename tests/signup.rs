@@ -140,56 +140,30 @@ async fn signup_ok_business() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
-async fn signup_ok_admin() -> anyhow::Result<()> {
+async fn signup_err_admin_cannot_signup() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // exec
     let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
-    let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
     let request_body = json!({
         "username": username,
-        "password": password,
-        "confirm_password": password,
+        "password": "",
+        "confirm_password": "",
         "account_type": "admin",
     });
     let response = client.do_post("/auth/signup", request_body).await.unwrap();
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(response.status(), 201, "response body:\n{response_body:#}");
+    assert_eq!(response.status(), 400, "response body:\n{response_body:#}");
 
     // check response body
-    #[derive(Deserialize)]
-    #[allow(unused)]
-    struct Schema {
-        user_id: Uuid,
-    }
-    let user_id = Schema::deserialize(&response_body)
-        .context("response body does not match expected schema")?
-        .user_id;
-
-    // check correct execution
-    login!(client, username = username, password = password);
-    let response = client.do_get("/users/me").await?;
-    let response_body = response.json_body()?;
     let expected_body = json!({
-        "id": user_id,
-        "username": username,
-        "account_type": "admin",
+        "message": "admin_cannot_create_account",
+        "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
+        "status": 400
     });
     assert_eq!(response_body, expected_body);
-
-    // clean up
-    // TODO
-    // assert!(
-    //     client
-    //         .do_delete("/users/<id or username>")
-    //         .await
-    //         .unwrap()
-    //         .status()
-    //         .is_success(),
-    //     "response body:\n{response_body:#}"
-    // );
 
     Ok(())
 }
