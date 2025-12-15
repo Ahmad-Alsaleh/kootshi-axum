@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-use sqlx::prelude::FromRow;
+#[cfg(test)]
+use sqlx::FromRow;
 use uuid::Uuid;
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
@@ -23,7 +24,7 @@ pub enum Sport {
 }
 
 #[allow(unused)]
-#[derive(FromRow)]
+#[cfg_attr(test, derive(FromRow))]
 pub struct User {
     pub id: Uuid,
     pub username: String,
@@ -36,14 +37,16 @@ pub struct User {
 }
 
 #[allow(unused)]
+#[cfg_attr(test, derive(FromRow))]
 pub struct PlayerProfile {
-    first_name: String,
-    last_name: String,
+    pub first_name: String,
+    pub last_name: String,
     // TODO: make sure this is a set (ie items are unique) in the DB
-    preferred_sports: Vec<String>,
+    pub preferred_sports: Vec<Sport>,
 }
 
 #[allow(unused)]
+#[cfg_attr(test, derive(FromRow))]
 pub struct BusinessProfile {
-    display_name: String,
+    pub display_name: String,
 }

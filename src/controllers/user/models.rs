@@ -23,6 +23,7 @@ pub struct UserPersonalInfo {
     pub profile: UserProfile,
 }
 
+// TODO: use models::tables::PlayerProfile and BusinessProfile inside Player and Business variants
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub enum UserProfile {
     Player {

@@ -199,14 +199,16 @@ impl UserController {
 #[cfg(test)]
 mod tests {
     use crate::{
+        configs::config,
         controllers::{
-            UserProfile,
+            UserForInsert, UserProfile,
             user::{errors::UserControllerError, user_controller::UserController},
         },
         models::{
             ModelManager,
-            tables::{Sport, UserRole},
+            tables::{BusinessProfile, PlayerProfile, Sport, User, UserRole},
         },
+        secrets::SecretManager,
     };
     use anyhow::Context;
     use rand::distr::{Alphanumeric, SampleString};
@@ -366,6 +368,235 @@ mod tests {
         assert!(matches!(
             user_login_info,
             Err(UserControllerError::UserNotFound)
+        ));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_insert_user_ok_player() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let profile = UserProfile::Player {
+            first_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
+            last_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
+            preferred_sports: vec![Sport::Football, Sport::Basketball],
+        };
+        let user = UserForInsert {
+            username: &username,
+            password: &password,
+            profile: &profile,
+        };
+
+        // exec
+        let id = UserController::insert_user(&model_manager, user)
+            .await
+            .context("failed while inserting user")?;
+
+        // check
+        let user: User = sqlx::query_as("SELECT * FROM users WHERE id = $1")
+            .bind(id)
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching user")?;
+        SecretManager::verify_secret(
+            &password,
+            &user.password_salt,
+            &config().password_key,
+            &user.password_hash,
+        )
+        .context("password is wrong")?;
+        assert_eq!(user.id, id);
+        assert_eq!(user.username, username);
+        assert_eq!(user.role, UserRole::Player);
+
+        let expected_profile: PlayerProfile =
+            sqlx::query_as("SELECT * FROM player_profiles WHERE user_id = $1")
+                .bind(id)
+                .fetch_one(model_manager.db())
+                .await
+                .context("failed while fetching player profile")?;
+        let expected_profile = UserProfile::Player {
+            first_name: expected_profile.first_name,
+            last_name: expected_profile.last_name,
+            preferred_sports: expected_profile.preferred_sports,
+        };
+        assert_eq!(expected_profile, profile);
+
+        let count: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM business_profiles WHERE user_id = $1")
+                .bind(id)
+                .fetch_one(model_manager.db())
+                .await
+                .context("failed while fetching business profile")?;
+        assert_eq!(count, 0);
+
+        // clean
+        let rows_affected = sqlx::query("DELETE FROM users WHERE username = $1")
+            .bind(username)
+            .execute(model_manager.db())
+            .await
+            .context("failed while deleting user")?
+            .rows_affected();
+        assert_eq!(rows_affected, 1);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_insert_user_ok_business() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let profile = UserProfile::Business {
+            display_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
+        };
+        let user = UserForInsert {
+            username: &username,
+            password: &password,
+            profile: &profile,
+        };
+
+        // exec
+        let id = UserController::insert_user(&model_manager, user)
+            .await
+            .context("failed while inserting user")?;
+
+        // check
+        let user: User = sqlx::query_as("SELECT * FROM users WHERE id = $1")
+            .bind(id)
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching user")?;
+        SecretManager::verify_secret(
+            &password,
+            &user.password_salt,
+            &config().password_key,
+            &user.password_hash,
+        )
+        .context("password is wrong")?;
+        assert_eq!(user.id, id);
+        assert_eq!(user.username, username);
+        assert_eq!(user.role, UserRole::Business);
+
+        let expected_profile: BusinessProfile =
+            sqlx::query_as("SELECT * FROM business_profiles WHERE user_id = $1")
+                .bind(id)
+                .fetch_one(model_manager.db())
+                .await
+                .context("failed while fetching business profile")?;
+        let expected_profile = UserProfile::Business {
+            display_name: expected_profile.display_name,
+        };
+        assert_eq!(expected_profile, profile);
+
+        let count: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM player_profiles WHERE user_id = $1")
+                .bind(id)
+                .fetch_one(model_manager.db())
+                .await
+                .context("failed while fetching player profile")?;
+        assert_eq!(count, 0);
+
+        // clean
+        let rows_affected = sqlx::query("DELETE FROM users WHERE username = $1")
+            .bind(username)
+            .execute(model_manager.db())
+            .await
+            .context("failed while deleting user")?
+            .rows_affected();
+        assert_eq!(rows_affected, 1);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_insert_user_ok_admin() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
+        let profile = UserProfile::Admin;
+        let user = UserForInsert {
+            username: &username,
+            password: &password,
+            profile: &profile,
+        };
+
+        // exec
+        let id = UserController::insert_user(&model_manager, user)
+            .await
+            .context("failed while inserting user")?;
+
+        // check
+        let user: User = sqlx::query_as("SELECT * FROM users WHERE id = $1")
+            .bind(id)
+            .fetch_one(model_manager.db())
+            .await
+            .context("failed while fetching user")?;
+        SecretManager::verify_secret(
+            &password,
+            &user.password_salt,
+            &config().password_key,
+            &user.password_hash,
+        )
+        .context("password is wrong")?;
+        assert_eq!(user.id, id);
+        assert_eq!(user.username, username);
+        assert_eq!(user.role, UserRole::Admin);
+
+        let count: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM player_profiles WHERE user_id = $1")
+                .bind(id)
+                .fetch_one(model_manager.db())
+                .await
+                .context("failed while fetching player profile")?;
+        assert_eq!(count, 0);
+
+        let count: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM business_profiles WHERE user_id = $1")
+                .bind(id)
+                .fetch_one(model_manager.db())
+                .await
+                .context("failed while fetching business profile")?;
+        assert_eq!(count, 0);
+
+        // clean
+        let rows_affected = sqlx::query("DELETE FROM users WHERE username = $1")
+            .bind(username)
+            .execute(model_manager.db())
+            .await
+            .context("failed while deleting user")?
+            .rows_affected();
+        assert_eq!(rows_affected, 1);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_insert_user_err_user_already_exists() -> anyhow::Result<()> {
+        let model_manager = ModelManager::new().await;
+
+        // prepare
+        let user = UserForInsert {
+            username: "business_2",
+            password: "",
+            profile: &UserProfile::Admin,
+        };
+
+        // exec
+        let result = UserController::insert_user(&model_manager, user).await;
+
+        // check
+        assert!(matches!(
+            result,
+            Err(UserControllerError::UsernameAlreadyExists)
         ));
 
         Ok(())
