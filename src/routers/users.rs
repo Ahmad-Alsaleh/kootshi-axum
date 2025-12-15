@@ -23,18 +23,8 @@ async fn get_personal_info(
         UserController::get_personal_info_by_id(&model_manager, auth_token.user_id).await?;
 
     let profile = match user_info.profile {
-        crate::controllers::UserProfile::Player {
-            first_name,
-            last_name,
-            preferred_sports,
-        } => UserProfile::Player {
-            first_name,
-            last_name,
-            preferred_sports,
-        },
-        crate::controllers::UserProfile::Business { display_name } => {
-            UserProfile::Business { display_name }
-        }
+        crate::controllers::UserProfile::Player(profile) => UserProfile::Player(profile),
+        crate::controllers::UserProfile::Business(profile) => UserProfile::Business(profile),
         crate::controllers::UserProfile::Admin => UserProfile::Admin,
     };
     let user_info = UserPersonalInfo {

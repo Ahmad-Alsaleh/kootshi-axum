@@ -36,8 +36,8 @@ pub struct User {
     pub role: UserRole,
 }
 
-#[allow(unused)]
-#[cfg_attr(test, derive(FromRow))]
+#[cfg_attr(test, derive(FromRow, Debug, PartialEq))]
+#[derive(Serialize, Deserialize)]
 pub struct PlayerProfile {
     pub first_name: String,
     pub last_name: String,
@@ -45,8 +45,8 @@ pub struct PlayerProfile {
     pub preferred_sports: Vec<Sport>,
 }
 
-#[allow(unused)]
-#[cfg_attr(test, derive(FromRow))]
+#[cfg_attr(test, derive(FromRow, Debug, PartialEq))]
+#[derive(Serialize, Deserialize)]
 pub struct BusinessProfile {
     pub display_name: String,
 }

@@ -6,7 +6,10 @@ use crate::{
             RawUserPersonalInfo, UserForInsert, UserLoginInfo, UserPersonalInfo, UserProfile,
         },
     },
-    models::{ModelManager, tables::UserRole},
+    models::{
+        ModelManager,
+        tables::{BusinessProfile, PlayerProfile, UserRole},
+    },
     secrets::SecretManager,
 };
 use uuid::Uuid;
@@ -54,7 +57,7 @@ impl UserController {
             UserRole::Player => {
                 let table_name = "player_profiles";
                 let explanation = explanation!("player");
-                UserProfile::Player {
+                UserProfile::Player(PlayerProfile {
                     first_name: raw_user_info.first_name.ok_or(
                         UserControllerError::UnexpectedNullValueFetchedFromDb {
                             table_name,
@@ -76,9 +79,9 @@ impl UserController {
                             explanation,
                         },
                     )?,
-                }
+                })
             }
-            UserRole::Business => UserProfile::Business {
+            UserRole::Business => UserProfile::Business(BusinessProfile {
                 display_name: raw_user_info.display_name.ok_or(
                     UserControllerError::UnexpectedNullValueFetchedFromDb {
                         table_name: "business_profiles",
@@ -86,7 +89,7 @@ impl UserController {
                         explanation: explanation!("business"),
                     },
                 )?,
-            },
+            }),
             UserRole::Admin => UserProfile::Admin,
         };
 
@@ -123,11 +126,11 @@ impl UserController {
             SecretManager::hash_secret(user.password, &password_salt, &config().password_key);
 
         let query = match user.profile {
-            UserProfile::Player {
+            UserProfile::Player(PlayerProfile {
                 first_name,
                 last_name,
                 preferred_sports,
-            } => sqlx::query_scalar(
+            }) => sqlx::query_scalar(
                 r#"
                 WITH inserted_user AS (
                     INSERT INTO users
@@ -149,7 +152,7 @@ impl UserController {
             .bind(first_name)
             .bind(last_name)
             .bind(preferred_sports),
-            UserProfile::Business { display_name } => sqlx::query_scalar(
+            UserProfile::Business(BusinessProfile { display_name }) => sqlx::query_scalar(
                 r#"
                 WITH inserted_user AS (
                     INSERT INTO users
@@ -235,11 +238,11 @@ mod tests {
         assert_eq!(user_info.username, username);
         assert_eq!(
             user_info.profile,
-            UserProfile::Player {
+            UserProfile::Player(PlayerProfile {
                 first_name: String::from("player_1_first"),
                 last_name: String::from("player_1_last"),
                 preferred_sports: vec![Sport::Football],
-            }
+            })
         );
 
         Ok(())
@@ -267,9 +270,9 @@ mod tests {
         assert_eq!(user_info.username, username);
         assert_eq!(
             user_info.profile,
-            UserProfile::Business {
+            UserProfile::Business(BusinessProfile {
                 display_name: String::from("business_2_display")
-            }
+            })
         );
 
         Ok(())
@@ -379,11 +382,12 @@ mod tests {
         // prepare
         let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
         let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
-        let profile = UserProfile::Player {
+        let player_profile = PlayerProfile {
             first_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
             last_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
             preferred_sports: vec![Sport::Football, Sport::Basketball],
         };
+        let profile = UserProfile::Player(player_profile);
         let user = UserForInsert {
             username: &username,
             password: &password,
@@ -412,18 +416,14 @@ mod tests {
         assert_eq!(user.username, username);
         assert_eq!(user.role, UserRole::Player);
 
-        let expected_profile: PlayerProfile =
+        let fetched_profile: PlayerProfile =
             sqlx::query_as("SELECT * FROM player_profiles WHERE user_id = $1")
                 .bind(id)
                 .fetch_one(model_manager.db())
                 .await
                 .context("failed while fetching player profile")?;
-        let expected_profile = UserProfile::Player {
-            first_name: expected_profile.first_name,
-            last_name: expected_profile.last_name,
-            preferred_sports: expected_profile.preferred_sports,
-        };
-        assert_eq!(expected_profile, profile);
+        let fetched_profile = UserProfile::Player(fetched_profile);
+        assert_eq!(fetched_profile, profile);
 
         let count: i64 =
             sqlx::query_scalar("SELECT COUNT(*) FROM business_profiles WHERE user_id = $1")
@@ -452,9 +452,9 @@ mod tests {
         // prepare
         let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
         let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
-        let profile = UserProfile::Business {
+        let profile = UserProfile::Business(BusinessProfile {
             display_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
-        };
+        });
         let user = UserForInsert {
             username: &username,
             password: &password,
@@ -489,9 +489,9 @@ mod tests {
                 .fetch_one(model_manager.db())
                 .await
                 .context("failed while fetching business profile")?;
-        let expected_profile = UserProfile::Business {
+        let expected_profile = UserProfile::Business(BusinessProfile {
             display_name: expected_profile.display_name,
-        };
+        });
         assert_eq!(expected_profile, profile);
 
         let count: i64 =

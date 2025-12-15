@@ -1,4 +1,4 @@
-use crate::models::tables::Sport;
+use crate::models::tables::{BusinessProfile, PlayerProfile};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -29,14 +29,7 @@ pub struct UserPersonalInfo {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "account_type", content = "profile", rename_all = "snake_case")]
 pub enum UserProfile {
-    Player {
-        first_name: String,
-        last_name: String,
-        // TODO: make sure this is a set (ie items are unique)
-        preferred_sports: Vec<Sport>,
-    },
-    Business {
-        display_name: String,
-    },
+    Player(PlayerProfile),
+    Business(BusinessProfile),
     Admin,
 }

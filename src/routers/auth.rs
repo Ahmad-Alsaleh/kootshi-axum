@@ -78,18 +78,8 @@ async fn signup(
     // ClientError::InvalidInput(message)
 
     let profile = match signup_payload.profile {
-        UserProfile::Player {
-            first_name,
-            last_name,
-            preferred_sports,
-        } => crate::controllers::UserProfile::Player {
-            first_name,
-            last_name,
-            preferred_sports,
-        },
-        UserProfile::Business { display_name } => {
-            crate::controllers::UserProfile::Business { display_name }
-        }
+        UserProfile::Player(profile) => crate::controllers::UserProfile::Player(profile),
+        UserProfile::Business(profile) => crate::controllers::UserProfile::Business(profile),
         UserProfile::Admin => return Err(ServerError::AdminCannotSignup),
     };
     let user = UserForInsert {

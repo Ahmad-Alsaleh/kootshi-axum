@@ -1,4 +1,4 @@
-use crate::models::tables::{Sport, UserRole};
+use crate::models::tables::{BusinessProfile, PlayerProfile, Sport, UserRole};
 use sqlx::FromRow;
 use uuid::Uuid;
 
@@ -23,18 +23,10 @@ pub struct UserPersonalInfo {
     pub profile: UserProfile,
 }
 
-// TODO: use models::tables::PlayerProfile and BusinessProfile inside Player and Business variants
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub enum UserProfile {
-    Player {
-        first_name: String,
-        last_name: String,
-        // TODO: make sure this is a set (ie items are unique)
-        preferred_sports: Vec<Sport>,
-    },
-    Business {
-        display_name: String,
-    },
+    Player(PlayerProfile),
+    Business(BusinessProfile),
     Admin,
 }
 
