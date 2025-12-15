@@ -1,7 +1,9 @@
 mod utils;
 
 use serde_json::json;
+use std::str::FromStr;
 use utils::login;
+use uuid::Uuid;
 
 const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 
@@ -77,8 +79,6 @@ async fn get_personal_info_ok_admin() -> anyhow::Result<()> {
     let response = client.do_get("/users/me").await?;
     let response_body = response.json_body()?;
 
-    println!("{response_body:#}");
-
     // check status code
     assert_eq!(response.status(), 200, "response body:\n{response_body:#}");
 
@@ -87,6 +87,28 @@ async fn get_personal_info_ok_admin() -> anyhow::Result<()> {
         "id": "00000000-0000-0000-0000-000000000005",
         "username": "admin",
         "account_type": "admin"
+    });
+    assert_eq!(response_body, expected_body);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn get_personal_info_err_login_needed() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // exec
+    let response = client.do_get("/users/me").await?;
+    let response_body = response.json_body()?;
+
+    // check status code
+    assert_eq!(response.status(), 401, "response body:\n{response_body:#}");
+
+    // check response body
+    let expected_body = json!({
+        "message": "login_needed",
+        "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
+        "status": 401
     });
     assert_eq!(response_body, expected_body);
 
