@@ -113,7 +113,6 @@ impl UserController {
         .ok_or(UserControllerError::UserNotFound)
     }
 
-    // TODO: test this function
     pub async fn insert_user(
         model_manager: &ModelManager,
         user: UserForInsert<'_>,

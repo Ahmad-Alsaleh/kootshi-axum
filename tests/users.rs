@@ -1,7 +1,6 @@
 mod utils;
 
 use serde_json::json;
-use std::str::FromStr;
 use utils::login;
 use uuid::Uuid;
 

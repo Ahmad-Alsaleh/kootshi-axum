@@ -1,5 +1,3 @@
-mod utils;
-
 use axum::http::StatusCode;
 use rand::distr::{Alphabetic, SampleString};
 

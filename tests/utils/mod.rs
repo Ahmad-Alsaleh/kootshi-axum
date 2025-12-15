@@ -4,11 +4,10 @@ macro_rules! login {
         $client.do_post("/auth/login", login_body).await.unwrap();
     }};
 
-    ($client:expr, username = $username:literal, password = $password:literal) => {{
+    ($client:expr, username = $username:expr, password = $password:expr) => {{
         let login_body = serde_json::json!({"username": $username, "password": $password});
         $client.do_post("/auth/login", login_body).await.unwrap();
     }};
 }
 
-#[allow(unused)]
 pub(crate) use login;

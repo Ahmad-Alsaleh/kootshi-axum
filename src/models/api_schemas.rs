@@ -13,6 +13,7 @@ pub struct SignupPayload {
     pub username: String,
     pub password: String, // TODO: use a secret crate to wrap the password
     pub confirm_password: String, // TODO: use a secret crate to wrap the password
+    #[serde(flatten)]
     pub profile: UserProfile,
 }
 
