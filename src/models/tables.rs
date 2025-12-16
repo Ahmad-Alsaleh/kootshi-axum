@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-#[cfg(test)]
 use sqlx::FromRow;
 use uuid::Uuid;
 
@@ -36,8 +35,8 @@ pub struct User {
     pub role: UserRole,
 }
 
-#[cfg_attr(test, derive(FromRow, Debug, PartialEq))]
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(FromRow, Serialize, Deserialize)]
 pub struct PlayerProfile {
     pub first_name: String,
     pub last_name: String,
@@ -45,8 +44,8 @@ pub struct PlayerProfile {
     pub preferred_sports: Vec<Sport>,
 }
 
-#[cfg_attr(test, derive(FromRow, Debug, PartialEq))]
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(FromRow, Serialize, Deserialize)]
 pub struct BusinessProfile {
     pub display_name: String,
 }

@@ -1,22 +1,8 @@
-use crate::models::tables::{BusinessProfile, PlayerProfile, Sport, UserRole};
+use crate::models::tables::{BusinessProfile, PlayerProfile, UserRole};
 use sqlx::FromRow;
 use uuid::Uuid;
 
-#[derive(FromRow)]
-pub struct RawUserPersonalInfo {
-    // core user profile
-    pub username: String,
-    pub role: UserRole,
-
-    // player profile
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub preferred_sports: Option<Vec<Sport>>,
-
-    // business profile
-    pub display_name: Option<String>,
-}
-
+#[cfg_attr(test, derive(Debug))]
 pub struct UserPersonalInfo {
     pub id: Uuid,
     pub username: String,
@@ -28,6 +14,25 @@ pub enum UserProfile {
     Player(PlayerProfile),
     Business(BusinessProfile),
     Admin,
+}
+
+#[derive(FromRow)]
+pub struct RawPlayerUser {
+    pub username: String,
+    #[sqlx(flatten)]
+    pub profile: PlayerProfile,
+}
+
+#[derive(FromRow)]
+pub struct RawBusinessUser {
+    pub username: String,
+    #[sqlx(flatten)]
+    pub profile: BusinessProfile,
+}
+
+#[derive(FromRow)]
+pub struct RawAdminUser {
+    pub username: String,
 }
 
 #[derive(FromRow)]

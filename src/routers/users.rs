@@ -17,10 +17,12 @@ async fn get_personal_info(
     auth_token: AuthToken,
     State(model_manager): State<ModelManager>,
 ) -> Result<Json<UserPersonalInfo>, ServerError> {
-    // TODO: make this function use a different sql query based on role (from auth_token). this
-    // will remove RawUserInfo struct.
-    let user_info =
-        UserController::get_personal_info_by_id(&model_manager, auth_token.user_id).await?;
+    let user_info = UserController::get_personal_info_by_id(
+        &model_manager,
+        auth_token.user_id,
+        auth_token.user_role,
+    )
+    .await?;
 
     let profile = match user_info.profile {
         crate::controllers::UserProfile::Player(profile) => UserProfile::Player(profile),

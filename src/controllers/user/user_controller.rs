@@ -3,7 +3,8 @@ use crate::{
     controllers::{
         UserControllerError,
         user::models::{
-            RawUserPersonalInfo, UserForInsert, UserLoginInfo, UserPersonalInfo, UserProfile,
+            RawAdminUser, RawBusinessUser, RawPlayerUser, UserForInsert, UserLoginInfo,
+            UserPersonalInfo, UserProfile,
         },
     },
     models::{
@@ -20,86 +21,96 @@ impl UserController {
     pub async fn get_personal_info_by_id(
         model_manager: &ModelManager,
         id: Uuid,
+        user_role: UserRole,
     ) -> Result<UserPersonalInfo, UserControllerError> {
-        let raw_user_info: RawUserPersonalInfo = sqlx::query_as(
-            r#"
-            SELECT
-                users.id,
-                users.username,
-                users.role,
-                -- player profile
-                player.first_name,
-                player.last_name,
-                player.preferred_sports,
-                -- business profile
-                business.display_name
-            FROM users
-            LEFT JOIN player_profiles player
-                ON users.id = player.user_id
-            LEFT JOIN business_profiles business
-                ON users.id = business.user_id
-            WHERE users.id = $1
-            "#,
-        )
-        .bind(id)
-        .fetch_optional(model_manager.db())
-        .await
-        .map_err(UserControllerError::Sqlx)?
-        .ok_or(UserControllerError::UserNotFound)?;
-
-        macro_rules! explanation {
-            ($role:literal) => {
-                stringify!(user role is $role and this column is not nullable in the table definition)
-            };
-        }
-
-        let profile = match raw_user_info.role {
+        let user = match user_role {
             UserRole::Player => {
-                let table_name = "player_profiles";
-                let explanation = explanation!("player");
-                UserProfile::Player(PlayerProfile {
-                    first_name: raw_user_info.first_name.ok_or(
-                        UserControllerError::UnexpectedNullValueFetchedFromDb {
-                            table_name,
-                            column_name: "first_name",
-                            explanation,
-                        },
-                    )?,
-                    last_name: raw_user_info.last_name.ok_or(
-                        UserControllerError::UnexpectedNullValueFetchedFromDb {
-                            table_name,
-                            column_name: "last_name",
-                            explanation,
-                        },
-                    )?,
-                    preferred_sports: raw_user_info.preferred_sports.ok_or(
-                        UserControllerError::UnexpectedNullValueFetchedFromDb {
-                            table_name,
-                            column_name: "preferred_sports",
-                            explanation,
-                        },
-                    )?,
-                })
+                let raw_player_user: RawPlayerUser = sqlx::query_as(
+                    r#"
+                    SELECT
+                        users.username,
+                        player.first_name,
+                        player.last_name,
+                        player.preferred_sports
+                    FROM
+                        users
+                    JOIN
+                        player_profiles player
+                    ON
+                        player.user_id = users.id
+                    WHERE
+                        users.id = $1
+                    AND
+                        users.role = 'player'
+                    "#,
+                )
+                .bind(id)
+                .fetch_optional(model_manager.db())
+                .await
+                .map_err(UserControllerError::Sqlx)?
+                .ok_or(UserControllerError::UserNotFound)?;
+                UserPersonalInfo {
+                    id,
+                    username: raw_player_user.username,
+                    profile: UserProfile::Player(raw_player_user.profile),
+                }
             }
-            UserRole::Business => UserProfile::Business(BusinessProfile {
-                display_name: raw_user_info.display_name.ok_or(
-                    UserControllerError::UnexpectedNullValueFetchedFromDb {
-                        table_name: "business_profiles",
-                        column_name: "display_name",
-                        explanation: explanation!("business"),
-                    },
-                )?,
-            }),
-            UserRole::Admin => UserProfile::Admin,
+            UserRole::Business => {
+                let raw_business_user: RawBusinessUser = sqlx::query_as(
+                    r#"
+                    SELECT
+                        users.username,
+                        business.display_name
+                    FROM
+                        users
+                    JOIN
+                        business_profiles business
+                    ON
+                        business.user_id = users.id
+                    WHERE
+                        users.id = $1
+                    AND
+                        users.role = 'business'
+                    "#,
+                )
+                .bind(id)
+                .fetch_optional(model_manager.db())
+                .await
+                .map_err(UserControllerError::Sqlx)?
+                .ok_or(UserControllerError::UserNotFound)?;
+                UserPersonalInfo {
+                    id,
+                    username: raw_business_user.username,
+                    profile: UserProfile::Business(raw_business_user.profile),
+                }
+            }
+            UserRole::Admin => {
+                let raw_admin_user: RawAdminUser = sqlx::query_as(
+                    r#"
+                    SELECT
+                        users.username
+                    FROM
+                        users
+                    WHERE
+                        users.id = $1
+                    AND
+                        users.role = 'admin'
+                    "#,
+                )
+                .bind(id)
+                .fetch_optional(model_manager.db())
+                .await
+                .map_err(UserControllerError::Sqlx)?
+                .ok_or(UserControllerError::UserNotFound)?;
+                UserPersonalInfo {
+                    id,
+                    username: raw_admin_user.username,
+                    profile: UserProfile::Admin,
+                }
+            }
         };
 
-        let user_info = UserPersonalInfo {
-            id,
-            username: raw_user_info.username,
-            profile,
-        };
-
-        Ok(user_info)
+        Ok(user)
     }
 
     pub async fn get_login_info_by_username(
@@ -107,7 +118,14 @@ impl UserController {
         username: &str,
     ) -> Result<UserLoginInfo, UserControllerError> {
         sqlx::query_as(
-            "SELECT id, role, password_hash, password_salt FROM users WHERE username = $1",
+            r#"
+            SELECT
+                id, role, password_hash, password_salt
+            FROM
+                users
+            WHERE
+                username = $1
+            "#,
         )
         .bind(username)
         .fetch_optional(model_manager.db())
@@ -122,6 +140,7 @@ impl UserController {
     ) -> Result<Uuid, UserControllerError> {
         let mut password_salt = [0u8; 32];
         SecretManager::generate_salt(&mut password_salt);
+
         let password_hash =
             SecretManager::hash_secret(user.password, &password_salt, &config().password_key);
 
@@ -229,9 +248,10 @@ mod tests {
             .context("failed while fetching id")?;
 
         // exec
-        let user_info = UserController::get_personal_info_by_id(&model_manager, id)
-            .await
-            .context("failed while fetching user info")?;
+        let user_info =
+            UserController::get_personal_info_by_id(&model_manager, id, UserRole::Player)
+                .await
+                .context("failed while fetching user info")?;
 
         // check
         assert_eq!(user_info.id, id);
@@ -261,9 +281,10 @@ mod tests {
             .context("failed while fetching id")?;
 
         // exec
-        let user_info = UserController::get_personal_info_by_id(&model_manager, id)
-            .await
-            .context("failed while fetching user info")?;
+        let user_info =
+            UserController::get_personal_info_by_id(&model_manager, id, UserRole::Business)
+                .await
+                .context("failed while fetching user info")?;
 
         // check
         assert_eq!(user_info.id, id);
@@ -291,9 +312,10 @@ mod tests {
             .context("failed while fetching id")?;
 
         // exec
-        let user_info = UserController::get_personal_info_by_id(&model_manager, id)
-            .await
-            .context("failed while fetching user info")?;
+        let user_info =
+            UserController::get_personal_info_by_id(&model_manager, id, UserRole::Admin)
+                .await
+                .context("failed while fetching user info")?;
 
         // check
         assert_eq!(user_info.id, id);
@@ -308,10 +330,18 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // exec
-        let user = UserController::get_personal_info_by_id(&model_manager, Uuid::new_v4()).await;
+        let result = UserController::get_personal_info_by_id(
+            &model_manager,
+            Uuid::new_v4(),
+            UserRole::Admin,
+        )
+        .await;
 
         // check
-        assert!(matches!(user, Err(UserControllerError::UserNotFound)));
+        assert!(
+            matches!(result, Err(UserControllerError::UserNotFound)),
+            "result: {result:?}"
+        );
 
         Ok(())
     }
@@ -363,14 +393,10 @@ mod tests {
 
         // exec
         let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
-        let user_login_info =
-            UserController::get_login_info_by_username(&model_manager, &username).await;
+        let result = UserController::get_login_info_by_username(&model_manager, &username).await;
 
         // check
-        assert!(matches!(
-            user_login_info,
-            Err(UserControllerError::UserNotFound)
-        ));
+        assert!(matches!(result, Err(UserControllerError::UserNotFound)));
 
         Ok(())
     }
@@ -382,12 +408,12 @@ mod tests {
         // prepare
         let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
         let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
-        let player_profile = PlayerProfile {
+        let profile = PlayerProfile {
             first_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
             last_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
             preferred_sports: vec![Sport::Football, Sport::Basketball],
         };
-        let profile = UserProfile::Player(player_profile);
+        let profile = UserProfile::Player(profile);
         let user = UserForInsert {
             username: &username,
             password: &password,

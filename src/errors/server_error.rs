@@ -18,11 +18,6 @@ pub enum ServerError {
     UsernameAlreadyExists,
     AuthTokenErr(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
     AuthTokenNotFoundInCookies,
-    UnexpectedNullValueFetchedFromDb {
-        table_name: &'static str,
-        column_name: &'static str,
-        explanation: &'static str,
-    },
     DataBase(String),
     AdminCannotSignup,
 }
@@ -34,15 +29,6 @@ impl From<UserControllerError> for ServerError {
         match user_controller_error {
             UserControllerError::UserNotFound => Self::UsernameNotFound,
             UserControllerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
-            UserControllerError::UnexpectedNullValueFetchedFromDb {
-                table_name,
-                column_name,
-                explanation,
-            } => Self::UnexpectedNullValueFetchedFromDb {
-                table_name,
-                column_name,
-                explanation,
-            },
             UserControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
         }
     }
@@ -74,9 +60,6 @@ impl From<&ServerError> for StatusCode {
             | ServerError::UsernameNotFound
             | ServerError::AdminCannotSignup => StatusCode::BAD_REQUEST,
             ServerError::UsernameAlreadyExists => StatusCode::CONFLICT,
-            ServerError::UnexpectedNullValueFetchedFromDb { .. } => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
         }
     }
 }
