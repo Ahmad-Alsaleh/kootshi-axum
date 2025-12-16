@@ -5,13 +5,12 @@ use crate::{
     extractors::AuthToken,
     models::{
         ModelManager,
-        api_schemas::{LoginPayload, SignupPayload, UserProfile},
+        api_schemas::{LoginPayload, LoginResponse, SignupPayload, SignupResponse, UserProfile},
     },
     secrets::SecretManager,
 };
-use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
+use axum::{Json, Router, extract::State, routing::post};
 use jsonwebtoken::{Algorithm, EncodingKey, Header};
-use serde_json::{Value, json};
 use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 
 pub fn get_router() -> Router<ModelManager> {
@@ -26,7 +25,7 @@ async fn login(
     State(model_manager): State<ModelManager>,
     cookies: Cookies,
     Json(login_payload): Json<LoginPayload>,
-) -> Result<Json<Value>, ServerError> {
+) -> Result<LoginResponse, ServerError> {
     let user_login_info =
         UserController::get_login_info_by_username(&model_manager, &login_payload.username).await?;
 
@@ -44,28 +43,25 @@ async fn login(
         &EncodingKey::from_secret(&config().auth_token_key),
     )?;
 
-    let response = json!({
-        "auth_token": encoded_auth_token
-    });
-
     // TODO: set a max age and use refresh tokens
     // TODO: explicitly set all security-critical fields of the cookie
-    // TODO: consider using an auth_token_salt
-    let cookie = Cookie::build(("auth-token", encoded_auth_token))
+    let cookie = Cookie::build(("auth-token", encoded_auth_token.clone()))
         .path("/")
         .http_only(true)
         .same_site(SameSite::Lax) // TODO: should this be strict?
         .build();
     cookies.add(cookie);
 
-    Ok(Json(response))
+    Ok(LoginResponse {
+        auth_token: encoded_auth_token,
+    })
 }
 
 // TODO: test this function
 async fn signup(
     State(model_manager): State<ModelManager>,
     Json(signup_payload): Json<SignupPayload>,
-) -> Result<impl IntoResponse, ServerError> {
+) -> Result<SignupResponse, ServerError> {
     if signup_payload.password != signup_payload.confirm_password {
         return Err(ServerError::PasswordAndConfirmPasswordAreDifferent);
     }
@@ -88,13 +84,9 @@ async fn signup(
         profile: &profile,
     };
 
-    let id = UserController::insert_user(&model_manager, user).await?;
+    let user_id = UserController::insert_user(&model_manager, user).await?;
 
-    let response = json!({
-        "user_id": id
-    });
-
-    Ok((StatusCode::CREATED, Json(response)))
+    Ok(SignupResponse { user_id })
 }
 
 // TODO: implement /logout

@@ -7,7 +7,7 @@ use crate::{
         api_schemas::{UserPersonalInfo, UserProfile},
     },
 };
-use axum::{Json, Router, extract::State, routing::get};
+use axum::{Router, extract::State, routing::get};
 
 pub fn get_router() -> Router<ModelManager> {
     Router::new().route("/me", get(get_personal_info))
@@ -16,7 +16,7 @@ pub fn get_router() -> Router<ModelManager> {
 async fn get_personal_info(
     auth_token: AuthToken,
     State(model_manager): State<ModelManager>,
-) -> Result<Json<UserPersonalInfo>, ServerError> {
+) -> Result<UserPersonalInfo, ServerError> {
     let user_info = UserController::get_personal_info_by_id(
         &model_manager,
         auth_token.user_id,
@@ -35,5 +35,5 @@ async fn get_personal_info(
         profile,
     };
 
-    Ok(Json(user_info))
+    Ok(user_info)
 }
