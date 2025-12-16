@@ -27,9 +27,9 @@ pub enum Sport {
 pub struct User {
     pub id: Uuid,
     pub username: String,
-    // TODO: make sure this is not serialized,
-    // maybe use a secret crate to wrap the password, or
-    // add a serder attr to skip serializing this field
+    // TODO: make sure the password hash and salt are not serialized to enusre they are not logged
+    // by mistake. maybe use a secret crate to wrap the password, or add a serder attr to skip
+    // serializing this field
     pub password_hash: Vec<u8>,
     pub password_salt: Vec<u8>,
     pub role: UserRole,

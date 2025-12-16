@@ -57,7 +57,6 @@ async fn login(
     })
 }
 
-// TODO: test this function
 async fn signup(
     State(model_manager): State<ModelManager>,
     Json(signup_payload): Json<SignupPayload>,
@@ -89,4 +88,5 @@ async fn signup(
     Ok(SignupResponse { user_id })
 }
 
-// TODO: implement /logout
+// TODO: implement /logout. ig for this, i need to use session-based auth (ie, auth-token stores a
+// session id instead of the user id, and the DB will store mappings from session ids to user ids)

@@ -13,7 +13,7 @@ const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 // TODO: for the login endponit, test client cookies, etc. test cookies if we login then make another api call
 // an easy and (imo) good way is to make a /protected-ping endpoint (follow restful naming conventions) for tests only that will return `pong!`
 
-// TODO: test calling a protected endpoint without auth
+// TODO: (important) test calling a protected endpoint without logging in, to ensure auth i didn't forget to protect the endpoint with auth
 
 // TODO: test if the user hits an auth-needed endpoint after the jwt token expires
 // ig an easy way to do this is to make exp configurable and have two configs, prod and dev

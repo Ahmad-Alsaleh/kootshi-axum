@@ -52,7 +52,6 @@ where
 
         let encoded_auth_token = cookie.value();
 
-        // TODO: consider using an auth_token_salt
         let token_data = jsonwebtoken::decode::<AuthToken>(
             encoded_auth_token.as_bytes(),
             &DecodingKey::from_secret(&config().auth_token_key),
