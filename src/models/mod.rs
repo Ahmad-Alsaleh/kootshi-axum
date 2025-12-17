@@ -15,10 +15,18 @@ impl ModelManager {
         Self(pool)
     }
 
-    // TODO: fake data will still be in the tables if relase mode is run after debug mode
     #[cfg(debug_assertions)]
     pub async fn seed_fake_data(&self) {
+        self.unseed_fake_data().await;
         sqlx::raw_sql(include_str!("../../sql/seed-fake-data.sql"))
+            .execute(self.db())
+            .await
+            .expect("failed to seed tables");
+    }
+
+    #[cfg(debug_assertions)]
+    pub async fn unseed_fake_data(&self) {
+        sqlx::raw_sql(include_str!("../../sql/unseed-fake-data.sql"))
             .execute(self.db())
             .await
             .expect("failed to seed tables");
