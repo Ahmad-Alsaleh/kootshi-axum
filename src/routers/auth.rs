@@ -89,4 +89,7 @@ async fn signup(
 }
 
 // TODO: implement /logout. ig for this, i need to use session-based auth (ie, auth-token stores a
-// session id instead of the user id, and the DB will store mappings from session ids to user ids)
+// session id instead of the user id, and the DB will store mappings from session ids to user ids).
+// take a look at the tower_sessions::SessionStore trait and
+// [this](https://github.com/maxcountryman/tower-sessions-stores) catalog especially the sqlx
+// example
