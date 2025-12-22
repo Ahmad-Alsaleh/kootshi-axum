@@ -212,6 +212,11 @@ impl UserController {
             Err(sqlx::Error::Database(err)) if err.constraint() == Some("users_username_key") => {
                 Err(UserControllerError::UsernameAlreadyExists)
             }
+            Err(sqlx::Error::Database(err))
+                if err.constraint() == Some("business_profiles_display_name_key") =>
+            {
+                Err(UserControllerError::BusinessDisplayNameAlreadyExists)
+            }
             Err(err) => Err(UserControllerError::Sqlx(err)),
         }
     }

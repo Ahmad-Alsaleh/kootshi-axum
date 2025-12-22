@@ -16,6 +16,7 @@ pub enum ServerError {
     WrongPassword,
     PasswordAndConfirmPasswordAreDifferent,
     UsernameAlreadyExists,
+    BusinessDisplayNameAlreadyExists,
     AuthTokenErr(#[serde_as(as = "DisplayFromStr")] jsonwebtoken::errors::Error),
     AuthTokenNotFoundInCookies,
     DataBase(String),
@@ -29,6 +30,9 @@ impl From<UserControllerError> for ServerError {
         match user_controller_error {
             UserControllerError::UserNotFound => Self::UsernameNotFound,
             UserControllerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
+            UserControllerError::BusinessDisplayNameAlreadyExists => {
+                Self::BusinessDisplayNameAlreadyExists
+            }
             UserControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
         }
     }
@@ -59,7 +63,9 @@ impl From<&ServerError> for StatusCode {
             ServerError::PasswordAndConfirmPasswordAreDifferent
             | ServerError::UsernameNotFound
             | ServerError::AdminCannotSignup => StatusCode::BAD_REQUEST,
-            ServerError::UsernameAlreadyExists => StatusCode::CONFLICT,
+            ServerError::UsernameAlreadyExists | ServerError::BusinessDisplayNameAlreadyExists => {
+                StatusCode::CONFLICT
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ pub enum ClientError {
     LoginNeeded,
     DatabaseError,
     UsernameAlreadyExists,
+    BusinessDisplayNameAlreadyExists,
     PasswordAndConfirmPasswordAreDifferent,
     AdminCannotCreateAccount,
 }
@@ -28,6 +29,7 @@ impl From<&ServerError> for ClientError {
                 Self::PasswordAndConfirmPasswordAreDifferent
             }
             ServerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
+            ServerError::BusinessDisplayNameAlreadyExists => Self::BusinessDisplayNameAlreadyExists,
             ServerError::AdminCannotSignup => Self::AdminCannotCreateAccount,
         }
     }

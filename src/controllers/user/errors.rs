@@ -4,6 +4,7 @@ use crate::errors::error_impl;
 pub enum UserControllerError {
     UserNotFound,
     UsernameAlreadyExists,
+    BusinessDisplayNameAlreadyExists,
     Sqlx(sqlx::Error),
 }
 
