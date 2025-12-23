@@ -3,6 +3,7 @@ use axum::http::StatusCode;
 use rand::distr::{Alphanumeric, SampleString};
 use serde::Deserialize;
 use serde_json::json;
+use uuid::{Uuid, uuid};
 
 // TODO: test the output (logs) of the server. ig a good way of doing it is by running the server
 // in a command and capturing stdout. but ig it is better to put these tests in
@@ -25,7 +26,7 @@ const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 // it passes
 
 #[tokio::test]
-async fn login_ok() -> anyhow::Result<()> {
+async fn login_ok_player() -> anyhow::Result<()> {
     let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
 
     // exec
@@ -40,14 +41,123 @@ async fn login_ok() -> anyhow::Result<()> {
     assert_eq!(status, 200, "response body:\n{response_body:#}");
 
     // check response body
+    let auth_token = response_body
+        .get("auth_token")
+        .context("response body does not match expected schema")?
+        .as_str()
+        .unwrap();
+
+    assert_eq!(auth_token.split('.').count(), 3);
+
+    let encoded_claims = auth_token.split('.').nth(1).unwrap();
+    let claims = base64_url::decode(encoded_claims).unwrap();
+
     #[derive(Deserialize)]
-    #[allow(unused)]
-    struct Schema {
-        auth_token: String,
+    struct Claims {
+        user_id: Uuid,
+        user_role: String,
     }
-    let schema = Schema::deserialize(response_body)
-        .context("response body does not match expected schema")?;
-    assert_eq!(schema.auth_token.split('.').count(), 3);
+    let claims: Claims = serde_json::from_slice(&claims).unwrap();
+
+    assert_eq!(
+        claims.user_id,
+        uuid!("00000000-0000-0000-0000-000000000001")
+    );
+    assert_eq!(claims.user_role, "player");
+
+    // check headers
+    assert!(set_cookie_header.starts_with("auth-token="));
+    assert!(client.cookie("auth-token").is_some());
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn login_ok_business() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // exec
+    let request_body = json!({"username": "business_1", "password": "business_1_password"});
+    let response = client.do_post("/auth/login", request_body).await.unwrap();
+
+    let status = response.status();
+    let response_body = response.json_body().unwrap();
+    let set_cookie_header = response.header("set-cookie").unwrap();
+
+    // check status code
+    assert_eq!(status, 200, "response body:\n{response_body:#}");
+
+    // check response body
+    let auth_token = response_body
+        .get("auth_token")
+        .context("response body does not match expected schema")?
+        .as_str()
+        .unwrap();
+
+    assert_eq!(auth_token.split('.').count(), 3);
+
+    let encoded_claims = auth_token.split('.').nth(1).unwrap();
+    let claims = base64_url::decode(encoded_claims).unwrap();
+
+    #[derive(Deserialize)]
+    struct Claims {
+        user_id: Uuid,
+        user_role: String,
+    }
+    let claims: Claims = serde_json::from_slice(&claims).unwrap();
+
+    assert_eq!(
+        claims.user_id,
+        uuid!("00000000-0000-0000-0000-000000000003")
+    );
+    assert_eq!(claims.user_role, "business");
+
+    // check headers
+    assert!(set_cookie_header.starts_with("auth-token="));
+    assert!(client.cookie("auth-token").is_some());
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn login_ok_admin() -> anyhow::Result<()> {
+    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+
+    // exec
+    let request_body = json!({"username": "admin", "password": "admin_password"});
+    let response = client.do_post("/auth/login", request_body).await.unwrap();
+
+    let status = response.status();
+    let response_body = response.json_body().unwrap();
+    let set_cookie_header = response.header("set-cookie").unwrap();
+
+    // check status code
+    assert_eq!(status, 200, "response body:\n{response_body:#}");
+
+    // check response body
+    let auth_token = response_body
+        .get("auth_token")
+        .context("response body does not match expected schema")?
+        .as_str()
+        .unwrap();
+
+    assert_eq!(auth_token.split('.').count(), 3);
+
+    let encoded_claims = auth_token.split('.').nth(1).unwrap();
+    let claims = base64_url::decode(encoded_claims).unwrap();
+
+    #[derive(Deserialize)]
+    struct Claims {
+        user_id: Uuid,
+        user_role: String,
+    }
+    let claims: Claims = serde_json::from_slice(&claims).unwrap();
+
+    assert_eq!(
+        claims.user_id,
+        uuid!("00000000-0000-0000-0000-000000000005")
+    );
+    assert_eq!(claims.user_role, "admin");
 
     // check headers
     assert!(set_cookie_header.starts_with("auth-token="));
