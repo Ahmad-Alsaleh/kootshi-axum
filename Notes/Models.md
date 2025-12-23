@@ -32,7 +32,7 @@
 - [ ] business updates personal profile info. `PATCH /users/me`
 - [ ] business deletes personal profile info. `DELETE /users/me`
 
-- [ ] admin logs in. `POST /auth/login`
+- [x] admin logs in. `POST /auth/login`
 - [x] admin views personal profile info. `GET /users/me`
 - [ ] admin updates personal profile info. `PATCH /users/me`
 - [ ] admin deletes personal profile info. `DELETE /users/me`
