@@ -1,4 +1,4 @@
-use crate::models::tables::{BusinessProfile, PlayerProfile, UserRole};
+use crate::models::tables::{BusinessProfile, PlayerProfile, Sport, UserRole};
 use sqlx::FromRow;
 use uuid::Uuid;
 
@@ -43,8 +43,30 @@ pub struct UserLoginInfo {
     pub password_salt: Vec<u8>,
 }
 
+// TODO: rename to InsertUserPayload
 pub struct UserForInsert<'a> {
     pub username: &'a str,
     pub password: &'a str,
     pub profile: &'a UserProfile,
+}
+
+pub struct UpdateUserInfoPayload {
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub profile: Option<UpdateUserProfilePayload>,
+}
+
+pub enum UpdateUserProfilePayload {
+    Player(UpdatePlayerProfilePayload),
+    Business(UpdateBusinessProfilePayload),
+}
+
+pub struct UpdatePlayerProfilePayload {
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub preferred_sports: Option<Vec<Sport>>,
+}
+
+pub struct UpdateBusinessProfilePayload {
+    pub display_name: Option<String>,
 }

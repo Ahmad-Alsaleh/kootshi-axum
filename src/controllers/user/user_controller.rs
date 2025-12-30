@@ -3,8 +3,8 @@ use crate::{
     controllers::{
         UserControllerError,
         user::models::{
-            RawAdminUser, RawBusinessUser, RawPlayerUser, UserForInsert, UserLoginInfo,
-            UserPersonalInfo, UserProfile,
+            RawAdminUser, RawBusinessUser, RawPlayerUser, UpdateUserInfoPayload,
+            UpdateUserProfilePayload, UserForInsert, UserLoginInfo, UserPersonalInfo, UserProfile,
         },
     },
     models::{
@@ -13,6 +13,7 @@ use crate::{
     },
     secrets::SecretManager,
 };
+use sqlx::QueryBuilder;
 use uuid::Uuid;
 
 pub struct UserController;
@@ -219,6 +220,146 @@ impl UserController {
             }
             Err(err) => Err(UserControllerError::Sqlx(err)),
         }
+    }
+
+    pub async fn update_by_id(
+        model_manager: &ModelManager,
+        id: Uuid,
+        user_role: UserRole,
+        new_user_info: UpdateUserInfoPayload,
+    ) -> Result<(), UserControllerError> {
+        // TODO: use helper functions to build each of the two queries
+
+        let mut query_builder = QueryBuilder::new("UPDATE users SET ");
+        let mut separated_query_builder = query_builder.separated(", ");
+
+        let mut is_users_table_updated = false;
+
+        if let Some(username) = new_user_info.username {
+            is_users_table_updated = true;
+            separated_query_builder
+                .push("username = ")
+                .push_bind_unseparated(username);
+        }
+
+        if let Some(password) = new_user_info.password {
+            is_users_table_updated = true;
+            // TODO: check if it's fine to update the salt when the password is updated.
+            // updating it will make the code more effecient as i don't need to first fetch the salt
+            // before updating the password
+            let mut password_salt = [0u8; 32];
+            SecretManager::generate_salt(&mut password_salt);
+            let password_hash =
+                SecretManager::hash_secret(&password, &password_salt, &config().password_key);
+            separated_query_builder
+                .push("password_hash = ")
+                .push_bind_unseparated(password_hash)
+                .push("password_salt = ")
+                .push_bind_unseparated(password_salt);
+        }
+
+        let update_users_table_query = is_users_table_updated.then(|| {
+            query_builder
+                .push(" WHERE id = ")
+                .push_bind(id)
+                .push(" AND role = ")
+                .push_bind(user_role)
+                .build()
+        });
+
+        // ---
+
+        let mut query_builder = QueryBuilder::new("");
+        let mut separated_query_builder = query_builder.separated(", ");
+        let mut is_profiles_table_updated = false;
+
+        if let Some(profile) = new_user_info.profile {
+            match (profile, user_role) {
+                (UpdateUserProfilePayload::Player(profile), UserRole::Player) => {
+                    separated_query_builder.push_unseparated("UPDATE player_profiles SET ");
+
+                    if let Some(frist_name) = profile.first_name {
+                        is_profiles_table_updated = true;
+                        separated_query_builder
+                            .push("first_name = ")
+                            .push_bind_unseparated(frist_name);
+                    }
+
+                    if let Some(last_name) = profile.last_name {
+                        is_profiles_table_updated = true;
+                        separated_query_builder
+                            .push("last_name = ")
+                            .push_bind_unseparated(last_name);
+                    }
+
+                    if let Some(preferred_sports) = profile.preferred_sports {
+                        is_profiles_table_updated = true;
+                        separated_query_builder
+                            .push("preferred_sports = ")
+                            .push_bind_unseparated(preferred_sports);
+                    }
+                }
+                (UpdateUserProfilePayload::Business(profile), UserRole::Business) => {
+                    separated_query_builder.push_unseparated("UPDATE business_profiles SET ");
+
+                    if let Some(display_name) = profile.display_name {
+                        is_profiles_table_updated = true;
+                        separated_query_builder
+                            .push("display_name = ")
+                            .push_bind_unseparated(display_name);
+                    }
+                }
+                _ => panic!("invalid profile"), // TODO: return an error "invalid profile" or the like
+            }
+        }
+
+        let update_profiles_table_query = is_profiles_table_updated.then(|| {
+            query_builder
+                .push(" WHERE user_id = ")
+                .push_bind(id)
+                .build()
+        });
+
+        // ---
+
+        if !(is_users_table_updated || is_profiles_table_updated) {
+            return Ok(());
+        }
+
+        let mut transaction = model_manager
+            .db()
+            .begin()
+            .await
+            .map_err(UserControllerError::Sqlx)?;
+
+        if let Some(query) = update_users_table_query {
+            let rows_affected = query
+                .execute(&mut *transaction)
+                .await
+                .map_err(UserControllerError::Sqlx)?
+                .rows_affected();
+            if rows_affected != 1 {
+                return Err(UserControllerError::UserNotFound);
+            }
+        }
+
+        if let Some(query) = update_profiles_table_query {
+            let rows_affected = query
+                .execute(&mut *transaction)
+                .await
+                .map_err(UserControllerError::Sqlx)?
+                .rows_affected();
+            if rows_affected != 1 {
+                return Err(UserControllerError::UserNotFound);
+            }
+        }
+
+        transaction
+            .commit()
+            .await
+            .map_err(UserControllerError::Sqlx)?;
+
+        Ok(())
     }
 }
 

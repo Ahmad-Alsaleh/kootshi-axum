@@ -2,6 +2,9 @@ mod user;
 
 pub use user::{
     errors::UserControllerError,
-    models::{UserForInsert, UserProfile},
+    models::{
+        UpdateBusinessProfilePayload, UpdatePlayerProfilePayload, UpdateUserInfoPayload,
+        UpdateUserProfilePayload, UserForInsert, UserProfile,
+    },
     user_controller::UserController,
 };

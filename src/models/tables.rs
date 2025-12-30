@@ -3,7 +3,7 @@ use sqlx::FromRow;
 use uuid::Uuid;
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
-#[derive(sqlx::Type, Serialize, Deserialize)]
+#[derive(Clone, Copy, sqlx::Type, Serialize, Deserialize)]
 #[sqlx(type_name = "user_role", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum UserRole {
