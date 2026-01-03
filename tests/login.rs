@@ -184,7 +184,7 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
 
     // check response body
     let expected_body = json!({
-        "message": "invalid_username",
+        "message": "invalid_username_or_password",
         "request_id": response_body.get("request_id").unwrap(),
         "status": 400,
     });
