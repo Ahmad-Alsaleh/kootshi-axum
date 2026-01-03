@@ -12,7 +12,7 @@ pub enum UserRole {
     Admin,
 }
 
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 #[derive(Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "sport", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
