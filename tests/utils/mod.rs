@@ -4,7 +4,9 @@ macro_rules! login {
             "username": ::core::stringify!($user),
             "password": ::core::concat!(::core::stringify!($user), "_password"),
         });
-        $client.do_post("/auth/login", login_body).await.unwrap();
+        let response = $client.do_post("/auth/login", login_body).await.unwrap();
+        assert_eq!(response.status(), 200);
+        response
     }};
 
     ($client:expr, username = $username:expr, password = $password:expr) => {{
@@ -12,7 +14,9 @@ macro_rules! login {
             "username": $username,
             "password": $password,
         });
-        $client.do_post("/auth/login", login_body).await.unwrap();
+        let response = $client.do_post("/auth/login", login_body).await.unwrap();
+        assert_eq!(response.status(), 200);
+        response
     }};
 }
 
