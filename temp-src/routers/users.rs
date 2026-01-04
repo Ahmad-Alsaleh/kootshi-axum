@@ -15,26 +15,8 @@ use axum::{
 
 pub fn get_router() -> Router<ModelManager> {
     Router::new()
-        .route("/me", get(get_personal_info).patch(update_personal_info))
         .route("/password", patch(update_password))
         .route("/{username}", delete(delete_user))
-}
-
-async fn get_personal_info(
-    auth_token: AuthToken,
-    State(model_manager): State<ModelManager>,
-) -> Result<Json<UserPersonalInfo>, ServerError> {
-    let user = UserController::get_by_id(&model_manager, auth_token.user_id).await?;
-    Ok(Json(user))
-}
-
-async fn update_personal_info(
-    auth_token: AuthToken,
-    State(model_manager): State<ModelManager>,
-    Json(new_user_info): Json<UpdateUserPersonalInfoPayload>,
-) -> Result<StatusCode, ServerError> {
-    UserController::update_by_id(&model_manager, auth_token.user_id, new_user_info).await?;
-    Ok(StatusCode::NO_CONTENT)
 }
 
 // TODO: test this endpoint
