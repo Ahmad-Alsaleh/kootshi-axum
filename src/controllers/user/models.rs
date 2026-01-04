@@ -44,7 +44,7 @@ pub struct UserLoginInfo {
 }
 
 // TODO: rename to InsertUserPayload
-pub struct UserForInsert<'a> {
+pub struct InsertUserPayload<'a> {
     pub username: &'a str,
     pub password: &'a str,
     pub profile: &'a UserProfile,

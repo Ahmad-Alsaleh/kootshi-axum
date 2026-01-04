@@ -3,8 +3,8 @@ use crate::{
     controllers::{
         UserControllerError,
         user::models::{
-            RawAdminUser, RawBusinessUser, RawPlayerUser, UpdateUserInfoPayload,
-            UpdateUserProfilePayload, UserForInsert, UserLoginInfo, UserPersonalInfo, UserProfile,
+            InsertUserPayload, RawAdminUser, RawBusinessUser, RawPlayerUser, UpdateUserInfoPayload,
+            UpdateUserProfilePayload, UserLoginInfo, UserPersonalInfo, UserProfile,
         },
     },
     models::{
@@ -137,7 +137,7 @@ impl UserController {
 
     pub async fn insert_user(
         model_manager: &ModelManager,
-        user: UserForInsert<'_>,
+        user: InsertUserPayload<'_>,
     ) -> Result<Uuid, UserControllerError> {
         let mut password_salt = [0u8; 32];
         SecretManager::generate_salt(&mut password_salt);
@@ -368,7 +368,7 @@ mod tests {
     use crate::{
         configs::config,
         controllers::{
-            UserForInsert, UserProfile,
+            InsertUserPayload, UserProfile,
             user::{errors::UserControllerError, user_controller::UserController},
         },
         models::{
@@ -560,7 +560,7 @@ mod tests {
             preferred_sports: vec![Sport::Football, Sport::Basketball],
         };
         let profile = UserProfile::Player(profile);
-        let user = UserForInsert {
+        let user = InsertUserPayload {
             username: &username,
             password: &password,
             profile: &profile,
@@ -627,7 +627,7 @@ mod tests {
         let profile = UserProfile::Business(BusinessProfile {
             display_name: Alphanumeric.sample_string(&mut rand::rng(), 16),
         });
-        let user = UserForInsert {
+        let user = InsertUserPayload {
             username: &username,
             password: &password,
             profile: &profile,
@@ -694,7 +694,7 @@ mod tests {
         let username = Alphanumeric.sample_string(&mut rand::rng(), 16);
         let password = Alphanumeric.sample_string(&mut rand::rng(), 16);
         let profile = UserProfile::Admin;
-        let user = UserForInsert {
+        let user = InsertUserPayload {
             username: &username,
             password: &password,
             profile: &profile,
@@ -755,7 +755,7 @@ mod tests {
         let model_manager = ModelManager::new().await;
 
         // prepare
-        let user = UserForInsert {
+        let user = InsertUserPayload {
             username: "business_2",
             password: "",
             profile: &UserProfile::Admin,

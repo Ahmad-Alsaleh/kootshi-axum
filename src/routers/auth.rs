@@ -1,6 +1,6 @@
 use crate::{
     configs::config,
-    controllers::{UserController, UserForInsert},
+    controllers::{InsertUserPayload, UserController},
     errors::ServerError,
     extractors::AuthToken,
     models::{
@@ -77,7 +77,7 @@ async fn signup(
         UserProfile::Business(profile) => crate::controllers::UserProfile::Business(profile),
         UserProfile::Admin => return Err(ServerError::AdminCannotSignup),
     };
-    let user = UserForInsert {
+    let user = InsertUserPayload {
         username: &signup_payload.username,
         password: &signup_payload.password,
         profile: &profile,
