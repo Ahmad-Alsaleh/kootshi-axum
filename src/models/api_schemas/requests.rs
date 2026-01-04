@@ -20,13 +20,15 @@ pub struct SignupPayload {
 pub struct UpdateUserInfoPayload {
     pub username: Option<String>,
     pub password: Option<String>,
+    #[serde(flatten)]
     pub profile: Option<UpdateUserProfilePayload>,
 }
 
 #[derive(Deserialize)]
-#[serde(untagged, rename_all = "snake_case")]
 pub enum UpdateUserProfilePayload {
+    #[serde(rename = "player_profile")]
     Player(UpdatePlayerProfilePayload),
+    #[serde(rename = "business_profile")]
     Business(UpdateBusinessProfilePayload),
 }
 
