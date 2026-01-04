@@ -39,10 +39,10 @@ async fn signup_ok_player() -> anyhow::Result<()> {
     // check response body
     #[derive(Deserialize)]
     #[allow(unused)]
-    struct Schema {
+    struct ResponseSchema {
         user_id: Uuid,
     }
-    let user_id = Schema::deserialize(&response_body)
+    let user_id = ResponseSchema::deserialize(&response_body)
         .context("response body does not match expected schema")?
         .user_id;
 
@@ -103,10 +103,10 @@ async fn signup_ok_business() -> anyhow::Result<()> {
     // check response body
     #[derive(Deserialize)]
     #[allow(unused)]
-    struct Schema {
+    struct ResponseSchema {
         user_id: Uuid,
     }
-    let user_id = Schema::deserialize(&response_body)
+    let user_id = ResponseSchema::deserialize(&response_body)
         .context("response body does not match expected schema")?
         .user_id;
 
