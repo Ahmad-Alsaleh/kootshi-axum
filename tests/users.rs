@@ -116,8 +116,6 @@ async fn get_personal_info_err_login_needed() -> anyhow::Result<()> {
     Ok(())
 }
 
-// TODO: test update_personal_info_ok with player, business, and admin profiles
-
 // PATCH /users/me 204
 #[tokio::test]
 async fn update_personal_info_ok_player() -> anyhow::Result<()> {
