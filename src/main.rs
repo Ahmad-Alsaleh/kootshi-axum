@@ -92,10 +92,10 @@ fn get_app_router(model_manager: ModelManager) -> Router {
         .layer(middleware::map_response(
             middlewares::insert_response_body_on_error,
         ))
+        .fallback(fallback)
         .layer(middleware::map_response(middlewares::log_response))
         .layer(middleware::map_request(middlewares::generate_request_id))
         .layer(CookieManagerLayer::new())
-        .fallback(fallback)
 }
 
 /// used for health checks
