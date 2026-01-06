@@ -23,21 +23,21 @@
 - [x] player creates an account. `POST /auth/signup`
 - [x] player logs in. `POST /auth/login`
 - [x] player views personal profile info. `GET /users/me`
-- [ ] player updates personal profile info. `PATCH /users/me`
+- [x] player updates personal profile info. `PATCH /users/me`
 - [ ] player deletes personal profile info. `DELETE /users/me`
 
 - [x] business creates an account. `POST /auth/signup`
 - [x] business logs in. `POST /auth/login`
 - [x] business views personal profile info. `GET /users/me`
-- [ ] business updates personal profile info. `PATCH /users/me`
+- [x] business updates personal profile info. `PATCH /users/me`
 - [ ] business deletes personal profile info. `DELETE /users/me`
 
 - [x] admin logs in. `POST /auth/login`
 - [x] admin views personal profile info. `GET /users/me`
-- [ ] admin updates personal profile info. `PATCH /users/me`
+- [x] admin updates personal profile info. `PATCH /users/me`
 - [ ] admin deletes personal profile info. `DELETE /users/me`
 
-- [ ] admin creates a user profile. `POST /users`
+- [ ] admin creates an admin user profile. `POST /users`
 - [ ] admin views profile info of a user. `GET /users/{user_id}`
 - [ ] admin updates profile info of a user. `PATCH /users/{user_id}`
 - [ ] admin deletes profile info of a user. `DELETE /users/{user_id}`
