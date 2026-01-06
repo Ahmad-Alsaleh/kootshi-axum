@@ -2,11 +2,13 @@ use crate::{
     errors::{ClientError, ServerError},
     extractors::AuthToken,
     logging::RequestLogInfo,
+    models::tables::UserRole,
 };
 use axum::{
     Extension, Json,
     extract::Request,
     http::{Method, Uri},
+    middleware::Next,
     response::{IntoResponse, Response},
 };
 use serde_json::json;
@@ -69,4 +71,15 @@ pub async fn log_response(
     println!("{}", json!(log_line));
 
     response
+}
+
+pub async fn authenticate_admin(
+    auth_token: AuthToken,
+    request: Request,
+    next: Next,
+) -> Result<Response, ServerError> {
+    match auth_token.user_role {
+        UserRole::Admin => Ok(next.run(request).await),
+        _ => Err(ServerError::UserIsNotAdmin),
+    }
 }

@@ -21,6 +21,7 @@ pub enum ServerError {
     AuthTokenNotFoundInCookies,
     DataBase(String),
     AdminCannotSignup,
+    UserIsNotAdmin,
 }
 
 error_impl!(ServerError);
@@ -53,6 +54,7 @@ impl From<SecretDoesNotMatchTarget> for ServerError {
 impl From<&ServerError> for StatusCode {
     fn from(server_error: &ServerError) -> Self {
         match server_error {
+            ServerError::UserIsNotAdmin => StatusCode::FORBIDDEN,
             ServerError::WrongPassword
             | ServerError::AuthTokenErr(_)
             | ServerError::AuthTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,

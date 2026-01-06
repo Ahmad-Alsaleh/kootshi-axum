@@ -2,18 +2,31 @@ use crate::{
     controllers::UserController,
     errors::ServerError,
     extractors::AuthToken,
+    middlewares,
     models::{
         ModelManager,
         api_schemas::{
             UpdateUserInfoPayload, UpdateUserInfoResponse, UpdateUserProfilePayload,
             UserPersonalInfo, UserProfile,
         },
+        tables::UserRole,
     },
 };
-use axum::{Json, Router, extract::State, routing::get};
+use axum::{
+    Json, Router,
+    extract::{Path, Query, State},
+    middleware,
+    routing::get,
+};
+use uuid::Uuid;
 
 pub fn get_router() -> Router<ModelManager> {
-    Router::new().route("/me", get(get_personal_info).patch(update_personal_info))
+    Router::new()
+        .route("/me", get(get_personal_info).patch(update_personal_info))
+        .route(
+            "/{user_id}",
+            get(get_user_info).route_layer(middleware::from_fn(middlewares::authenticate_admin)),
+        )
 }
 
 async fn get_personal_info(
@@ -27,6 +40,30 @@ async fn get_personal_info(
     )
     .await?;
 
+    let profile = match user_info.profile {
+        crate::controllers::UserProfile::Player(profile) => UserProfile::Player(profile),
+        crate::controllers::UserProfile::Business(profile) => UserProfile::Business(profile),
+        crate::controllers::UserProfile::Admin => UserProfile::Admin,
+    };
+    let user_info = UserPersonalInfo {
+        id: user_info.id,
+        username: user_info.username,
+        profile,
+    };
+
+    Ok(user_info)
+}
+
+// TODO: test this endpoint (login as admin, login as player, don't login, etc)
+async fn get_user_info(
+    Path(user_id): Path<Uuid>,
+    Query(user_role): Query<UserRole>,
+    State(model_manager): State<ModelManager>,
+) -> Result<UserPersonalInfo, ServerError> {
+    let user_info =
+        UserController::get_personal_info_by_id(&model_manager, user_id, user_role).await?;
+
+    // TODO: consider implementing `impl From<controllers::users::UserPersonalInfo> for api_schemas::UserPersonalInfo `
     let profile = match user_info.profile {
         crate::controllers::UserProfile::Player(profile) => UserProfile::Player(profile),
         crate::controllers::UserProfile::Business(profile) => UserProfile::Business(profile),

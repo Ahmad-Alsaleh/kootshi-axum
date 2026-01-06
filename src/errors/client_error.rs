@@ -11,6 +11,7 @@ pub enum ClientError {
     BusinessDisplayNameAlreadyExists,
     PasswordAndConfirmPasswordAreDifferent,
     AdminCannotCreateAccount,
+    ThisOperationIsForAdminsOnly,
 }
 
 error_impl!(ClientError);
@@ -18,6 +19,7 @@ error_impl!(ClientError);
 impl From<&ServerError> for ClientError {
     fn from(server_error: &ServerError) -> Self {
         match server_error {
+            ServerError::UserIsNotAdmin => Self::ThisOperationIsForAdminsOnly,
             ServerError::UsernameNotFound | ServerError::WrongPassword => {
                 Self::InvalidUsernameOrPassword
             }
