@@ -6,10 +6,9 @@ use crate::{
     models::{
         ModelManager,
         api_schemas::{
-            UpdateUserInfoPayload, UpdateUserInfoResponse, UpdateUserProfilePayload,
-            UserPersonalInfo, UserProfile,
+            GetUserInfoQuery, UpdateUserInfoPayload, UpdateUserInfoResponse,
+            UpdateUserProfilePayload, UserPersonalInfo, UserProfile,
         },
-        tables::UserRole,
     },
 };
 use axum::{
@@ -54,10 +53,9 @@ async fn get_personal_info(
     Ok(user_info)
 }
 
-// TODO: test this endpoint (login as admin, login as player, don't login, etc)
 async fn get_user_info(
     Path(user_id): Path<Uuid>,
-    Query(user_role): Query<UserRole>,
+    Query(GetUserInfoQuery { user_role }): Query<GetUserInfoQuery>,
     State(model_manager): State<ModelManager>,
 ) -> Result<UserPersonalInfo, ServerError> {
     let user_info =

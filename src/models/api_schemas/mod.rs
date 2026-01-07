@@ -1,8 +1,10 @@
 mod common_schemas;
+mod query_params;
 mod requests;
 mod responses;
 
 pub use common_schemas::UserProfile;
+pub use query_params::GetUserInfoQuery;
 pub use requests::{LoginPayload, SignupPayload, UpdateUserInfoPayload, UpdateUserProfilePayload};
 pub use responses::{LoginResponse, SignupResponse, UpdateUserInfoResponse, UserPersonalInfo};
 
