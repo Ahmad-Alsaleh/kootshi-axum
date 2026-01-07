@@ -180,13 +180,13 @@ async fn login_err_username_not_found() -> anyhow::Result<()> {
     let response_body = response.json_body().unwrap();
 
     // check status code
-    assert_eq!(status, 400, "response body:\n{response_body:#}");
+    assert_eq!(status, 401, "response body:\n{response_body:#}");
 
     // check response body
     let expected_body = json!({
         "message": "invalid_username_or_password",
         "request_id": response_body.get("request_id").unwrap(),
-        "status": 400,
+        "status": 401,
     });
     assert_eq!(response_body, expected_body);
 

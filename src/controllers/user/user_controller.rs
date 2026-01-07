@@ -132,7 +132,7 @@ impl UserController {
         .fetch_optional(model_manager.db())
         .await
         .map_err(UserControllerError::Sqlx)?
-        .ok_or(UserControllerError::UserNotFound)
+        .ok_or(UserControllerError::InvalidUsernameForLogin)
     }
 
     pub async fn insert_user(
@@ -542,7 +542,10 @@ mod tests {
         let result = UserController::get_login_info_by_username(&model_manager, &username).await;
 
         // check
-        assert!(matches!(result, Err(UserControllerError::UserNotFound)));
+        assert!(matches!(
+            result,
+            Err(UserControllerError::InvalidUsernameForLogin)
+        ));
 
         Ok(())
     }

@@ -570,7 +570,7 @@ async fn get_user_info_err_user_not_found() -> anyhow::Result<()> {
 
     // check response body
     let expected_body = json!({
-        "message": "invalid_username_or_password",
+        "message": "user_not_found",
         "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
         "status": 400
     });
@@ -598,7 +598,7 @@ async fn get_user_info_err_wrong_role() -> anyhow::Result<()> {
 
     // check response body
     let expected_body = json!({
-        "message": "invalid_username_or_password",
+        "message": "user_not_found",
         "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
         "status": 400
     });

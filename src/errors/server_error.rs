@@ -12,7 +12,8 @@ use serde_with::{DisplayFromStr, serde_as};
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum ServerError {
-    UsernameNotFound,
+    UserNotFound,
+    InvalidUsernameForLogin,
     WrongPassword,
     PasswordAndConfirmPasswordAreDifferent,
     UsernameAlreadyExists,
@@ -29,7 +30,8 @@ error_impl!(ServerError);
 impl From<UserControllerError> for ServerError {
     fn from(user_controller_error: UserControllerError) -> Self {
         match user_controller_error {
-            UserControllerError::UserNotFound => Self::UsernameNotFound,
+            UserControllerError::UserNotFound => Self::UserNotFound,
+            UserControllerError::InvalidUsernameForLogin => Self::InvalidUsernameForLogin,
             UserControllerError::UsernameAlreadyExists => Self::UsernameAlreadyExists,
             UserControllerError::BusinessDisplayNameAlreadyExists => {
                 Self::BusinessDisplayNameAlreadyExists
@@ -55,7 +57,8 @@ impl From<&ServerError> for StatusCode {
     fn from(server_error: &ServerError) -> Self {
         match server_error {
             ServerError::UserIsNotAdmin => StatusCode::FORBIDDEN,
-            ServerError::WrongPassword
+            ServerError::InvalidUsernameForLogin
+            | ServerError::WrongPassword
             | ServerError::AuthTokenErr(_)
             | ServerError::AuthTokenNotFoundInCookies => StatusCode::UNAUTHORIZED,
             ServerError::DataBase(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -63,7 +66,7 @@ impl From<&ServerError> for StatusCode {
             // unautherized,bad request!!,not acceptatle!!,misdirected request, unprocessable
             // entity)
             ServerError::PasswordAndConfirmPasswordAreDifferent
-            | ServerError::UsernameNotFound
+            | ServerError::UserNotFound
             | ServerError::AdminCannotSignup => StatusCode::BAD_REQUEST,
             ServerError::UsernameAlreadyExists | ServerError::BusinessDisplayNameAlreadyExists => {
                 StatusCode::CONFLICT
