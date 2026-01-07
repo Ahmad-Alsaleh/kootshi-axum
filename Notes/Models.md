@@ -38,9 +38,11 @@
 - [ ] admin deletes personal profile info. `DELETE /users/me`
 
 - [ ] admin creates an admin user profile. `POST /users`
-- [ ] admin views profile info of a user. `GET /users/{user_id}`
+- [x] admin views profile info of a user. `GET /users/{user_id}`
 - [ ] admin updates profile info of a user. `PATCH /users/{user_id}`
 - [ ] admin deletes profile info of a user. `DELETE /users/{user_id}`
+
+> when deleting the user profile, make sure to log him out and invalidate his auth token so he can't login again later before his token expires. or, simply tell the user that your account will deleted within x hours where x > the expirey date of the token.
 
 ## PlayerProfile
 
