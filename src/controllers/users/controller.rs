@@ -2,7 +2,7 @@ use crate::{
     configs::config,
     controllers::{
         UserControllerError,
-        user::models::{
+        users::models::{
             InsertUserPayload, RawAdminUser, RawBusinessUser, RawPlayerUser, UpdateUserInfoPayload,
             UpdateUserProfilePayload, UserLoginInfo, UserPersonalInfo, UserProfile,
         },
@@ -369,7 +369,7 @@ mod tests {
         configs::config,
         controllers::{
             InsertUserPayload, UserProfile,
-            user::{errors::UserControllerError, controller::UserController},
+            users::{errors::UserControllerError, controller::UserController},
         },
         models::{
             ModelManager,

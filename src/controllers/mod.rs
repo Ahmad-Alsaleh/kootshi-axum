@@ -1,6 +1,6 @@
-mod user;
+mod users;
 
-pub use user::{
+pub use users::{
     controller::UserController,
     errors::UserControllerError,
     models::{
