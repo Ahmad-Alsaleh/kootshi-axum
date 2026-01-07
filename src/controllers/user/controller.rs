@@ -369,7 +369,7 @@ mod tests {
         configs::config,
         controllers::{
             InsertUserPayload, UserProfile,
-            user::{errors::UserControllerError, user_controller::UserController},
+            user::{errors::UserControllerError, controller::UserController},
         },
         models::{
             ModelManager,
