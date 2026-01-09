@@ -1,30 +1,19 @@
 mod utils;
 
+use crate::utils::{login, test_get_err, test_get_ok, test_login_needed_error};
 use rand::distr::{Alphanumeric, SampleString};
 use serde_json::json;
 use serial_test::serial;
-use utils::login;
 use uuid::Uuid;
 
 const DEV_BASE_URL: &str = "http://localhost:1948/api/v1";
 
-// GET /users/me 200
-#[tokio::test]
-async fn get_personal_info_ok_player() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = player_1);
-
-    // exec
-    let response = client.do_get("/users/me").await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 200, "response_body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
+test_get_ok!(
+    test_name = get_personal_info_ok_player,
+    user = player_1,
+    path = "/users/me",
+    status = 200,
+    response = json!({
         "id": "00000000-0000-0000-0000-000000000001",
         "username": "player_1",
         "account_type": "player",
@@ -33,88 +22,37 @@ async fn get_personal_info_ok_player() -> anyhow::Result<()> {
             "last_name": "player_1_last",
             "preferred_sports": ["football"]
         }
-    });
-    assert_eq!(response_body, expected_body);
+    })
+);
 
-    Ok(())
-}
-
-// GET /users/me 200
-#[tokio::test]
-async fn get_personal_info_ok_business() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = business_1);
-
-    // exec
-    let response = client.do_get("/users/me").await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 200, "response body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
+test_get_ok!(
+    test_name = get_personal_info_ok_business,
+    user = business_1,
+    path = "/users/me",
+    status = 200,
+    response = json!({
         "id": "00000000-0000-0000-0000-000000000003",
         "username": "business_1",
         "account_type": "business",
         "profile": {
             "display_name": "business_1_display"
         }
-    });
-    assert_eq!(response_body, expected_body);
+    })
+);
 
-    Ok(())
-}
-
-// GET /users/me 200
-#[tokio::test]
-async fn get_personal_info_ok_admin() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = admin);
-
-    // exec
-    let response = client.do_get("/users/me").await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 200, "response body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
+test_get_ok!(
+    test_name = get_personal_info_ok_admin,
+    user = admin,
+    path = "/users/me",
+    status = 200,
+    response = json!({
         "id": "00000000-0000-0000-0000-000000000005",
         "username": "admin",
         "account_type": "admin"
-    });
-    assert_eq!(response_body, expected_body);
+    })
+);
 
-    Ok(())
-}
-
-#[tokio::test]
-async fn get_personal_info_err_login_needed() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // exec
-    let response = client.do_get("/users/me").await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 401, "response body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
-        "message": "login_needed",
-        "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
-        "status": 401
-    });
-    assert_eq!(response_body, expected_body);
-
-    Ok(())
-}
+test_login_needed_error!(get_personal_info_err_login_needed, "/users/me");
 
 // PATCH /users/me 204
 #[tokio::test]
@@ -377,25 +315,12 @@ async fn update_personal_info_ok_no_update() -> anyhow::Result<()> {
     Ok(())
 }
 
-// GET /users/{user_id}?user_role=player 200
-#[tokio::test]
-async fn get_user_info_ok_admin_requests_player() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = admin);
-
-    // exec
-    let response = client
-        .do_get("/users/00000000-0000-0000-0000-000000000001?user_role=player")
-        .await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 200, "response_body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
+test_get_ok!(
+    test_name = get_user_info_ok_admin_requests_player,
+    user = admin,
+    path = "/users/00000000-0000-0000-0000-000000000001?user_role=player",
+    status = 200,
+    response = json!({
         "id": "00000000-0000-0000-0000-000000000001",
         "username": "player_1",
         "account_type": "player",
@@ -403,206 +328,86 @@ async fn get_user_info_ok_admin_requests_player() -> anyhow::Result<()> {
             "first_name": "player_1_first",
             "last_name": "player_1_last",
             "preferred_sports": ["football"]
-        }
-    });
-    assert_eq!(response_body, expected_body);
+    }
+    })
+);
 
-    Ok(())
-}
-
-// GET /users/{user_id}?user_role=business 200
-#[tokio::test]
-async fn get_user_info_ok_admin_requests_business() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = admin);
-
-    // exec
-    let response = client
-        .do_get("/users/00000000-0000-0000-0000-000000000003?user_role=business")
-        .await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 200, "response_body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
+test_get_ok!(
+    test_name = get_user_info_ok_admin_requests_business,
+    user = admin,
+    path = "/users/00000000-0000-0000-0000-000000000003?user_role=business",
+    status = 200,
+    response = json!({
         "id": "00000000-0000-0000-0000-000000000003",
         "username": "business_1",
         "account_type": "business",
         "profile": {
             "display_name": "business_1_display"
-        }
-    });
-    assert_eq!(response_body, expected_body);
+    }
+    })
+);
 
-    Ok(())
-}
-
-// GET /users/{user_id}?user_role=admin 200
-#[tokio::test]
-async fn get_user_info_ok_admin_requests_admin() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = admin);
-
-    // exec
-    let response = client
-        .do_get("/users/00000000-0000-0000-0000-000000000005?user_role=admin")
-        .await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 200, "response_body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
+test_get_ok!(
+    test_name = get_user_info_ok_admin_requests_admin,
+    user = admin,
+    path = "/users/00000000-0000-0000-0000-000000000005?user_role=admin",
+    status = 200,
+    response = json!({
         "id": "00000000-0000-0000-0000-000000000005",
         "username": "admin",
         "account_type": "admin"
-    });
-    assert_eq!(response_body, expected_body);
+    })
+);
 
-    Ok(())
-}
+test_get_err!(
+    test_name = get_user_info_err_player_not_authorized,
+    user = player_1,
+    path = "/users/00000000-0000-0000-0000-000000000002?user_role=player",
+    status = 403,
+    error_message = "this_operation_is_for_admins_only"
+);
 
-// GET /users/{user_id}?user_role=player 403
-#[tokio::test]
-async fn get_user_info_err_player_not_authorized() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
+test_get_err!(
+    test_name = get_user_info_err_business_not_authorized,
+    user = business_1,
+    path = "/users/00000000-0000-0000-0000-000000000002?user_role=player",
+    status = 403,
+    error_message = "this_operation_is_for_admins_only"
+);
 
-    // prepare
-    login!(client, user = player_1);
+test_get_err!(
+    test_name = get_user_info_err_player_requests_self,
+    user = player_2,
+    path = "/users/00000000-0000-0000-0000-000000000002?user_role=player",
+    status = 403,
+    error_message = "this_operation_is_for_admins_only"
+);
 
-    // exec
-    let response = client
-        .do_get("/users/00000000-0000-0000-0000-000000000002?user_role=player")
-        .await?;
-    let response_body = response.json_body()?;
+test_get_err!(
+    test_name = get_user_info_err_business_requests_self,
+    user = business_2,
+    path = "/users/00000000-0000-0000-0000-000000000004?user_role=business",
+    status = 403,
+    error_message = "this_operation_is_for_admins_only"
+);
 
-    // check status code
-    assert_eq!(response.status(), 403, "response_body:\n{response_body:#}");
+test_login_needed_error!(
+    get_user_info_err_login_needed,
+    "/users/00000000-0000-0000-0000-000000000001?user_role=player"
+);
 
-    // check response body
-    let expected_body = json!({
-        "message": "this_operation_is_for_admins_only",
-        "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
-        "status": 403
-    });
-    assert_eq!(response_body, expected_body);
+test_get_err!(
+    test_name = get_user_info_err_user_not_found,
+    user = admin,
+    path = &format!("/users/{}?user_role=player", Uuid::new_v4()),
+    status = 400,
+    error_message = "user_not_found"
+);
 
-    Ok(())
-}
-
-// GET /users/{user_id}?user_role=player 403
-#[tokio::test]
-async fn get_user_info_err_business_not_authorized() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = business_1);
-
-    // exec
-    let response = client
-        .do_get("/users/00000000-0000-0000-0000-000000000001?user_role=player")
-        .await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 403, "response_body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
-        "message": "this_operation_is_for_admins_only",
-        "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
-        "status": 403
-    });
-    assert_eq!(response_body, expected_body);
-
-    Ok(())
-}
-
-// GET /users/{user_id}?user_role=player 401
-#[tokio::test]
-async fn get_user_info_err_login_needed() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // exec
-    let response = client
-        .do_get("/users/00000000-0000-0000-0000-000000000001?user_role=player")
-        .await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 401, "response_body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
-        "message": "login_needed",
-        "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
-        "status": 401
-    });
-    assert_eq!(response_body, expected_body);
-
-    Ok(())
-}
-
-// GET /users/{user_id}?user_role=player 400 (not found)
-#[tokio::test]
-async fn get_user_info_err_user_not_found() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = admin);
-
-    // exec
-    let random_user_id = Uuid::new_v4();
-    let response = client
-        .do_get(&format!("/users/{random_user_id}?user_role=player"))
-        .await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 400, "response_body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
-        "message": "user_not_found",
-        "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
-        "status": 400
-    });
-    assert_eq!(response_body, expected_body);
-
-    Ok(())
-}
-
-// GET /users/{user_id}?user_role=business 400 (user exists but wrong role)
-#[tokio::test]
-async fn get_user_info_err_wrong_role() -> anyhow::Result<()> {
-    let client = httpc_test::new_client(DEV_BASE_URL).unwrap();
-
-    // prepare
-    login!(client, user = admin);
-
-    // exec - requesting player_1 but with business role
-    let response = client
-        .do_get("/users/00000000-0000-0000-0000-000000000001?user_role=business")
-        .await?;
-    let response_body = response.json_body()?;
-
-    // check status code
-    assert_eq!(response.status(), 400, "response_body:\n{response_body:#}");
-
-    // check response body
-    let expected_body = json!({
-        "message": "user_not_found",
-        "request_id": serde_json::from_value::<Uuid>(response_body.get("request_id").unwrap().clone()).unwrap(),
-        "status": 400
-    });
-    assert_eq!(response_body, expected_body);
-
-    Ok(())
-}
+test_get_err!(
+    test_name = get_user_info_err_wrong_role,
+    user = admin,
+    path = "/users/00000000-0000-0000-0000-000000000001?user_role=business",
+    status = 400,
+    error_message = "user_not_found"
+);
