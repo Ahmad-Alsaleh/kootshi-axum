@@ -9,7 +9,7 @@ use crate::{
             common_schemas::UserProfile,
             query_params::GetUserInfoQuery,
             requests::{UpdateUserInfoPayload, UpdateUserProfilePayload},
-            responses::{UpdateUserInfoResponse, UserPersonalInfo},
+            responses::{GetUserPersonalInfoResponse, UpdateUserInfoResponse},
         },
     },
 };
@@ -33,7 +33,7 @@ pub fn get_router() -> Router<ModelManager> {
 async fn get_personal_info(
     auth_token: AuthToken,
     State(model_manager): State<ModelManager>,
-) -> Result<UserPersonalInfo, ServerError> {
+) -> Result<GetUserPersonalInfoResponse, ServerError> {
     let user_info = UserController::get_personal_info_by_id(
         &model_manager,
         auth_token.user_id,
@@ -46,7 +46,7 @@ async fn get_personal_info(
         crate::controllers::UserProfile::Business(profile) => UserProfile::Business(profile),
         crate::controllers::UserProfile::Admin => UserProfile::Admin,
     };
-    let user_info = UserPersonalInfo {
+    let user_info = GetUserPersonalInfoResponse {
         id: user_info.id,
         username: user_info.username,
         profile,
@@ -59,7 +59,7 @@ async fn get_user_info(
     Path(user_id): Path<Uuid>,
     Query(GetUserInfoQuery { user_role }): Query<GetUserInfoQuery>,
     State(model_manager): State<ModelManager>,
-) -> Result<UserPersonalInfo, ServerError> {
+) -> Result<GetUserPersonalInfoResponse, ServerError> {
     let user_info =
         UserController::get_personal_info_by_id(&model_manager, user_id, user_role).await?;
 
@@ -69,7 +69,7 @@ async fn get_user_info(
         crate::controllers::UserProfile::Business(profile) => UserProfile::Business(profile),
         crate::controllers::UserProfile::Admin => UserProfile::Admin,
     };
-    let user_info = UserPersonalInfo {
+    let user_info = GetUserPersonalInfoResponse {
         id: user_info.id,
         username: user_info.username,
         profile,

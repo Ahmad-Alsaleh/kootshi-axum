@@ -6,7 +6,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 #[derive(Serialize)]
-pub struct UserPersonalInfo {
+pub struct GetUserPersonalInfoResponse {
     pub id: Uuid,
     pub username: String,
     #[serde(flatten)]
@@ -25,7 +25,7 @@ pub struct SignupResponse {
 
 pub struct UpdateUserInfoResponse;
 
-impl_into_response_with_json_body!(UserPersonalInfo);
+impl_into_response_with_json_body!(GetUserPersonalInfoResponse);
 impl_into_response_with_json_body!(LoginResponse);
 impl_into_response_with_json_body!(SignupResponse, StatusCode::CREATED);
 impl_into_response_with_no_body!(UpdateUserInfoResponse, StatusCode::NO_CONTENT);
