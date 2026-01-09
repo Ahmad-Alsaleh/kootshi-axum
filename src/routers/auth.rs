@@ -5,7 +5,11 @@ use crate::{
     extractors::AuthToken,
     models::{
         ModelManager,
-        api_schemas::{LoginPayload, LoginResponse, SignupPayload, SignupResponse, UserProfile},
+        api_schemas::{
+            common_schemas::UserProfile,
+            requests::{LoginPayload, SignupPayload},
+            responses::{LoginResponse, SignupResponse},
+        },
     },
     secrets::SecretManager,
 };

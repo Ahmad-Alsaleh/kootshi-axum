@@ -1,12 +1,7 @@
-mod common_schemas;
-mod query_params;
-mod requests;
-mod responses;
-
-pub use common_schemas::UserProfile;
-pub use query_params::GetUserInfoQuery;
-pub use requests::{LoginPayload, SignupPayload, UpdateUserInfoPayload, UpdateUserProfilePayload};
-pub use responses::{LoginResponse, SignupResponse, UpdateUserInfoResponse, UserPersonalInfo};
+pub mod common_schemas;
+pub mod query_params;
+pub mod requests;
+pub mod responses;
 
 macro_rules! impl_into_response_with_json_body {
     ($type:ty) => {

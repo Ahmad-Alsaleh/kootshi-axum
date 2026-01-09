@@ -1,5 +1,5 @@
 use crate::models::api_schemas::{
-    UserProfile, impl_into_response_with_json_body, impl_into_response_with_no_body,
+    common_schemas::UserProfile, impl_into_response_with_json_body, impl_into_response_with_no_body,
 };
 use axum::http::StatusCode;
 use serde::Serialize;

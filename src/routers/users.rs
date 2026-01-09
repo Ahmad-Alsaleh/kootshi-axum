@@ -6,8 +6,10 @@ use crate::{
     models::{
         ModelManager,
         api_schemas::{
-            GetUserInfoQuery, UpdateUserInfoPayload, UpdateUserInfoResponse,
-            UpdateUserProfilePayload, UserPersonalInfo, UserProfile,
+            common_schemas::UserProfile,
+            query_params::GetUserInfoQuery,
+            requests::{UpdateUserInfoPayload, UpdateUserProfilePayload},
+            responses::{UpdateUserInfoResponse, UserPersonalInfo},
         },
     },
 };

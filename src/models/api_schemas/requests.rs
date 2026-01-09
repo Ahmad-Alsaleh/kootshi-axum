@@ -1,4 +1,4 @@
-use crate::models::{api_schemas::UserProfile, tables::Sport};
+use crate::models::{api_schemas::common_schemas::UserProfile, tables::Sport};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
