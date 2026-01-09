@@ -92,6 +92,9 @@
 ### Operations
 
 - [ ] player views relevant pitches (based on location, preferred sports, etc.). `GET /pitches`
+    - [ ] 1. get all pitches
+    - [ ] 2. use pagination
+    - [ ] 3. sort pitches by relavance
 
 - [ ] guest views relevant pitches (based on location, preferred sports, etc.). `GET /pitches`
 
