@@ -22,8 +22,8 @@ pub enum Sport {
     Basketball,
 }
 
-#[allow(unused)]
-#[cfg_attr(test, derive(FromRow))]
+#[cfg(test)]
+#[derive(FromRow)]
 pub struct User {
     pub id: Uuid,
     pub username: String,
@@ -48,4 +48,12 @@ pub struct PlayerProfile {
 #[derive(FromRow, Serialize, Deserialize)]
 pub struct BusinessProfile {
     pub display_name: String,
+}
+
+#[derive(FromRow, Serialize, Deserialize)]
+pub struct Pitch {
+    pub id: Uuid,
+    pub owner_id: Uuid,
+    pub display_name: String,
+    pub sport: Sport,
 }

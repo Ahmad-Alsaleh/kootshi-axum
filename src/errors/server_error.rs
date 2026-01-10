@@ -1,5 +1,7 @@
 use crate::{
-    controllers::UserControllerError, errors::error_impl, secrets::SecretDoesNotMatchTarget,
+    controllers::{PitchControllerError, UserControllerError},
+    errors::error_impl,
+    secrets::SecretDoesNotMatchTarget,
 };
 use axum::{
     http::StatusCode,
@@ -37,6 +39,14 @@ impl From<UserControllerError> for ServerError {
                 Self::BusinessDisplayNameAlreadyExists
             }
             UserControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
+        }
+    }
+}
+
+impl From<PitchControllerError> for ServerError {
+    fn from(pitch_controller_error: PitchControllerError) -> Self {
+        match pitch_controller_error {
+            PitchControllerError::Sqlx(err) => Self::DataBase(err.to_string()),
         }
     }
 }

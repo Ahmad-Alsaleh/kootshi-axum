@@ -88,6 +88,7 @@ fn get_app_router(model_manager: ModelManager) -> Router {
         .route("/ping", get(ping))
         .nest("/auth", routers::auth::get_router())
         .nest("/users", routers::users::get_router())
+        .nest("/pitches", routers::pitches::get_router())
         .with_state(model_manager)
         .layer(middleware::map_response(
             middlewares::insert_response_body_on_error,
