@@ -38,7 +38,7 @@ async fn signup_ok_player() -> anyhow::Result<()> {
 
     // check response body
     #[derive(Deserialize)]
-    #[allow(unused)]
+    #[serde(deny_unknown_fields)]
     struct ResponseSchema {
         user_id: Uuid,
     }
@@ -102,7 +102,7 @@ async fn signup_ok_business() -> anyhow::Result<()> {
 
     // check response body
     #[derive(Deserialize)]
-    #[allow(unused)]
+    #[serde(deny_unknown_fields)]
     struct ResponseSchema {
         user_id: Uuid,
     }

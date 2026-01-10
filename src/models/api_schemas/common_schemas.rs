@@ -3,7 +3,12 @@ use serde::{Deserialize, Serialize};
 
 #[cfg_attr(test, derive(PartialEq, Debug))]
 #[derive(Serialize, Deserialize)]
-#[serde(tag = "account_type", content = "profile", rename_all = "snake_case")]
+#[serde(
+    tag = "account_type",
+    content = "profile",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
 pub enum UserProfile {
     Player(PlayerProfile),
     Business(BusinessProfile),

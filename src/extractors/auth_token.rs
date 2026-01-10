@@ -14,6 +14,7 @@ use tower_cookies::Cookies;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AuthToken {
     pub user_id: Uuid,
     pub user_role: UserRole,

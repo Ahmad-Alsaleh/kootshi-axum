@@ -53,6 +53,7 @@ async fn login_ok_player() -> anyhow::Result<()> {
     let claims = base64_url::decode(encoded_claims).unwrap();
 
     #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
     struct Claims {
         user_id: Uuid,
         user_role: String,
@@ -100,6 +101,7 @@ async fn login_ok_business() -> anyhow::Result<()> {
     let claims = base64_url::decode(encoded_claims).unwrap();
 
     #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
     struct Claims {
         user_id: Uuid,
         user_role: String,
@@ -147,6 +149,7 @@ async fn login_ok_admin() -> anyhow::Result<()> {
     let claims = base64_url::decode(encoded_claims).unwrap();
 
     #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
     struct Claims {
         user_id: Uuid,
         user_role: String,

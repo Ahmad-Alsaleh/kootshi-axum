@@ -5,7 +5,7 @@ use uuid::Uuid;
 #[cfg_attr(test, derive(Debug, PartialEq))]
 #[derive(Clone, Copy, sqlx::Type, Serialize, Deserialize)]
 #[sqlx(type_name = "user_role", rename_all = "snake_case")]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum UserRole {
     Player,
     Business,
@@ -15,7 +15,7 @@ pub enum UserRole {
 #[cfg_attr(test, derive(Debug, PartialEq))]
 #[derive(Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "sport", rename_all = "snake_case")]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum Sport {
     Football,
     Padel,
@@ -37,6 +37,7 @@ pub struct User {
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
 #[derive(FromRow, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PlayerProfile {
     pub first_name: String,
     pub last_name: String,
@@ -46,11 +47,12 @@ pub struct PlayerProfile {
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
 #[derive(FromRow, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BusinessProfile {
     pub display_name: String,
 }
 
-#[derive(FromRow, Serialize, Deserialize)]
+#[derive(FromRow, Serialize)]
 pub struct Pitch {
     pub id: Uuid,
     pub owner_id: Uuid,
