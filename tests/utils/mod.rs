@@ -52,6 +52,34 @@ pub(crate) use test_login_needed_error;
 macro_rules! test_get_ok {
     (
         test_name = $test_name:ident,
+        path = $path:literal,
+        status = $expected_status_code:literal,
+        response = $expected_response_body:expr
+    ) => {
+        #[::tokio::test]
+        async fn $test_name() -> ::anyhow::Result<()> {
+            let client = ::httpc_test::new_client(DEV_BASE_URL)?;
+
+            // exec
+            let response = client.do_get($path).await?;
+            let response_body = response.json_body()?;
+
+            // check status code
+            assert_eq!(
+                response.status(),
+                $expected_status_code,
+                "response_body:\n{response_body:#}"
+            );
+
+            // check response body
+            assert_eq!(response_body, $expected_response_body);
+
+            Ok(())
+        }
+    };
+
+    (
+        test_name = $test_name:ident,
         user = $user:ident,
         path = $path:literal,
         status = $expected_status_code:literal,
