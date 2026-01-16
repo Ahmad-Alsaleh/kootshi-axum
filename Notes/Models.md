@@ -92,19 +92,22 @@
 ### Operations
 
 - [ ] player views relevant pitches (based on location, preferred sports, etc.). `GET /pitches`
-    - [ ] 1. get all pitches
+    - [x] 1. get all pitches
     - [ ] 2. use pagination
     - [ ] 3. sort pitches by relavance
 
 - [ ] guest views relevant pitches (based on location, preferred sports, etc.). `GET /pitches`
+    - [x] 1. get all pitches
+    - [ ] 2. use pagination
+    - [ ] 3. sort pitches by relavance
 
 - [ ] business creates a personal pitch.  `POST /pitches`
-- [ ] business views personal pitches. `GET /pitches`
+- [x] business views personal pitches. `GET /pitches`
 - [ ] business updates a personal pitch. `PATCH /pitches/{pitch_id}`
 - [ ] business deletes a personal pitch. `DELETE /pitches/{pitch_id}`
 
 - [ ] admin creates a pitch for a business. `POST /pitches`
-- [ ] admin views all pitches. `GET /pitches`
+- [x] admin views all pitches. `GET /pitches`
 - [ ] admin views pitches of a business. `GET /pitches?business_id={business_id}`
 - [ ] admin updates a pitch for a business. `PATCH /pitches/{pitch_id}`
 - [ ] admin deletes a pitch for a business. `DELETE /pitches/{pitch_id}`
