@@ -1,0 +1,241 @@
+openapi: 3.0.3
+info:
+  title: PitchBook API
+  description: API for a sports pitch booking mobile application.
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /pitches:
+    get:
+      summary: List all available pitches
+      parameters:
+        - name: sport
+          in: query
+          schema:
+            type: string
+            enum: [football, basketball, padel, tennis, volleyball]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of pitches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pitch'
+  /pitches/{id}:
+    get:
+      summary: Get pitch details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pitch details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pitch'
+  /pitches/{id}/slots:
+    get:
+      summary: Get available time slots for a pitch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of time slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimeSlot'
+  /pitches/{id}/reviews:
+    get:
+      summary: Get reviews for a pitch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+  /bookings:
+    get:
+      summary: Get current user's bookings
+      responses:
+        '200':
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+    post:
+      summary: Create a new booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pitchId
+                - slotId
+                - date
+              properties:
+                pitchId:
+                  type: string
+                slotId:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                paymentMethod:
+                  type: string
+                  enum: [card, paypal]
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+  /user/profile:
+    get:
+      summary: Get current user profile
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+components:
+  schemas:
+    Pitch:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sport:
+          type: string
+        location:
+          type: string
+        address:
+          type: string
+        pricePerHour:
+          type: number
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        imageUrl:
+          type: string
+        amenities:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        ownerName:
+          type: string
+        ownerAvatar:
+          type: string
+    TimeSlot:
+      type: object
+      properties:
+        id:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        available:
+          type: boolean
+        price:
+          type: number
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+        userName:
+          type: string
+        userAvatar:
+          type: string
+        rating:
+          type: number
+        comment:
+          type: string
+        date:
+          type: string
+          format: date
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+        pitchId:
+          type: string
+        pitchName:
+          type: string
+        date:
+          type: string
+          format: date
+        startTime:
+          type: string
+        endTime:
+          type: string
+        totalPrice:
+          type: number
+        status:
+          type: string
+          enum: [upcoming, completed, cancelled]
+        sport:
+          type: string
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        avatar:
+          type: string
+        memberSince:
+          type: string
+        totalBookings:
+          type: integer
+        favoriteSport:
+          type: string
